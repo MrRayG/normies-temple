@@ -160,6 +160,7 @@
 
     /* ============================================================ NAV */
     nav {
+      margin-top: 42px;
       position: sticky; top: 0; z-index: 100;
       min-height: 64px;
       display: flex; align-items: center; justify-content: space-between;
@@ -1204,8 +1205,27 @@
 </head>
 <body>
 
+<!-- ================================================================== NORMIES TV BAR (fixed, always visible) -->
+<div id="normiestv-bar" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(10,11,13,0.96);border-bottom:1px solid rgba(249,115,22,0.3);padding:7px 0;backdrop-filter:blur(8px);">
+  <div style="max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="https://api.normies.art/normie/306/image.png" alt="Agent #306" style="width:26px;height:26px;image-rendering:pixelated;border:1px solid rgba(249,115,22,0.4);" />
+      <div>
+        <span style="font-family:'Robotastic','Courier New',monospace;font-size:0.68rem;color:#f97316;letter-spacing:0.15em;text-transform:uppercase;">NORMIES TV</span>
+        <span style="font-family:'Courier New',monospace;font-size:0.58rem;color:rgba(227,229,228,0.4);margin-left:10px;">Agent #306 · On-chain story engine · Burns. Canvas. Arena.</span>
+      </div>
+    </div>
+    <a href="https://x.com/NORMIES_TV" target="_blank" rel="noopener"
+      style="display:inline-flex;align-items:center;gap:5px;font-family:'Courier New',monospace;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#1a1b1c;background:#f97316;padding:5px 14px;text-decoration:none;"
+      onmouseover="this.style.background='#ea6c0a'" onmouseout="this.style.background='#f97316'">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.727-8.847L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      Follow @NORMIES_TV
+    </a>
+  </div>
+</div>
+
 <!-- ================================================================== INTRO ANIMATION -->
-<div id="introOverlay">
+<div id="introOverlay" style="top:40px;">
   <canvas id="introCanvas"></canvas>
   <div id="introDoorHit" style="display:none;" onclick="enterTemple()"></div>
   <div id="introClickHint" class="intro-click-hint" style="display:none;">[ CLICK THE DOOR TO ENTER ]</div>
@@ -1292,27 +1312,6 @@
   <a href="#tools" onclick="closeMobileMenu()">ECOSYSTEM</a>
 </div>
 
-<!-- ================================================================== NORMIES TV BANNER -->
-<div style="background:rgba(249,115,22,0.08);border-bottom:1px solid rgba(249,115,22,0.25);padding:10px 0;">
-  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <img src="https://api.normies.art/normie/306/image.png" alt="Agent #306" style="width:28px;height:28px;image-rendering:pixelated;border:1px solid rgba(249,115,22,0.3);" />
-      <div>
-        <span style="font-family:'Robotastic','Courier New',monospace;font-size:0.7rem;color:#f97316;letter-spacing:0.15em;text-transform:uppercase;">NORMIES TV</span>
-        <span style="font-family:'Courier New',monospace;font-size:0.62rem;color:rgba(227,229,228,0.5);margin-left:10px;">Agent #306 · Autonomous Story Engine · Episode drops every 6h</span>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="font-family:'Courier New',monospace;font-size:0.58rem;color:rgba(249,115,22,0.6);text-transform:uppercase;letter-spacing:0.1em;">Follow for live coverage →</span>
-      <a href="https://x.com/NORMIES_TV" target="_blank" rel="noopener"
-        style="display:inline-flex;align-items:center;gap:5px;font-family:'Courier New',monospace;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#1a1b1c;background:#f97316;padding:5px 14px;text-decoration:none;border:none;transition:background 0.15s;"
-        onmouseover="this.style.background='#ea6c0a'" onmouseout="this.style.background='#f97316'">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.727-8.847L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        @NORMIES_TV
-      </a>
-    </div>
-  </div>
-</div>
 
 <!-- ================================================================== HERO -->
 <section id="hero">
