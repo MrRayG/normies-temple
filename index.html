@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Perplexity Computer -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Normies Temple — The Community Museum</title>
+  <meta name="description" content="The Normies Temple — an interactive museum celebrating legendary canvases, epic burns, historic milestones, and the artists who shaped the Normies collection." />
+  <meta property="og:title" content="Normies Temple" />
+  <meta property="og:description" content="The on-chain museum for the Normies community. Legendary canvases, hall of fame, burn history, artist profiles." />
+  <meta property="og:image" content="https://www.normies.art/og.png" />
+  <meta name="author" content="@MrRayG" />
+  <meta name="twitter:creator" content="@MrRayG" />
+  <meta name="twitter:site" content="@MrRayG" />
+  <!-- Built by @MrRayG — https://github.com/MrRayG -->
+
+  <!-- Robotastic font (matching normies.art) -->
+  <style>
+    @font-face {
+      font-family: 'Robotastic';
+      src: url('https://www.normies.art/fonts/robotastic.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+
+  <style>
+    /* ============================================================
+       INTRO ANIMATION OVERLAY
+       ============================================================ */
+    #introOverlay {
+      position: fixed;
+      inset: 0;
+      background: #1a1b1c;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity 0.6s ease;
+    }
+    #introOverlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #introCanvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .intro-skip {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(227,229,228,0.45);
+      background: transparent;
+      border: 1px solid rgba(227,229,228,0.2);
+      padding: 0.35rem 0.9rem;
+      cursor: pointer;
+      z-index: 10001;
+      transition: opacity 0.3s;
+    }
+    .intro-skip:hover { color: #e3e5e4; border-color: rgba(227,229,228,0.55); }
+    #introDoorHit {
+      position: absolute;
+      cursor: pointer;
+      z-index: 10002;
+      border: none;
+      background: transparent;
+    }
+    .intro-click-hint {
+      position: absolute;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #e3e5e4;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10003;
+      animation: pulse-hint 1s ease-in-out infinite alternate;
+    }
+    @keyframes pulse-hint {
+      from { opacity: 0.5; transform: translateY(0); }
+      to   { opacity: 1;   transform: translateY(-4px); }
+    }
+    .intro-skip:hover { color: rgba(227,229,228,0.9); border-color: rgba(227,229,228,0.5); }
+  </style>
+
+  <style>
+    /* ============================================================
+       ROOT — NORMIES DESIGN SYSTEM (matches normies.art exactly)
+       ============================================================ */
+    :root {
+      --bg:   #e3e5e4;
+      --fg:   #2a2b2d;
+      --bg-rgb: 227,229,228;
+      --fg-rgb: 42,43,45;
+
+      --font-pixel: 'Robotastic', 'Courier New', monospace;
+      --font-mono:  'Courier New', Courier, monospace;
+
+      /* Border utilities */
+      --border-faint:  1px solid rgba(var(--fg-rgb), 0.10);
+      --border-subtle: 1px solid rgba(var(--fg-rgb), 0.15);
+      --border-medium: 1px solid rgba(var(--fg-rgb), 0.25);
+      --border-strong: 1px solid rgba(var(--fg-rgb), 0.45);
+
+      /* Content widths */
+      --w-narrow: 720px;
+      --w-default: 960px;
+      --w-wide: 1200px;
+
+      /* Gold accent for hall of fame / legendary — very muted */
+      --gold: rgba(var(--fg-rgb), 0.85);
+    }
+
+    html.dark {
+      --bg:   #1a1b1c;
+      --fg:   #e3e5e4;
+      --bg-rgb: 26,27,28;
+      --fg-rgb: 227,229,228;
+    }
+
+    /* ============================================================ BASE */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      scroll-behavior: smooth;
+      image-rendering: pixelated;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      line-height: 1.7;
+      min-height: 100dvh;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; background: none; border: none; font: inherit; color: inherit; }
+    input, select, textarea { font: inherit; color: inherit; background: transparent; }
+    ul { list-style: none; }
+
+    /* ============================================================ TYPOGRAPHY */
+    .pixel { font-family: var(--font-pixel); letter-spacing: 0.05em; }
+    .mono  { font-family: var(--font-mono); }
+    .upper { text-transform: uppercase; letter-spacing: 0.15em; }
+    .muted { opacity: 0.70; }
+    .faint { opacity: 0.50; }
+
+    /* ============================================================ NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      min-height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      border-bottom: var(--border-subtle);
+      background: rgba(var(--bg-rgb), 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .nav-brand {
+      font-family: var(--font-pixel);
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-brand-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.45;
+      border: var(--border-medium);
+      padding: 0.15rem 0.4rem;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .nav-links a, .nav-links button {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.5;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 2px solid transparent;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+    .nav-links a:hover, .nav-links button:hover { opacity: 1; }
+    .nav-links a.active { opacity: 1; border-bottom-color: var(--fg); }
+    .nav-actions {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-icon-btn {
+      width: 36px; height: 36px;
+      border: var(--border-subtle);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.6; transition: opacity 0.15s, border-color 0.15s;
+    }
+    .nav-icon-btn:hover { opacity: 1; border-color: rgba(var(--fg-rgb), 0.4); }
+    .theme-btn { font-size: 1rem; }
+
+    /* Mobile nav */
+    .hamburger { display: none; }
+    .mobile-menu {
+      display: none;
+      position: fixed; top: 64px; right: 0; bottom: 0; width: 260px;
+      background: var(--bg);
+      border-left: var(--border-subtle);
+      z-index: 99;
+      padding: 2rem 1.5rem;
+      flex-direction: column; gap: 1rem;
+    }
+    .mobile-menu a {
+      font-size: 0.8rem; text-transform: uppercase;
+      letter-spacing: 0.15em; opacity: 0.7;
+      padding: 0.75rem 0; border-bottom: var(--border-faint);
+    }
+    .mobile-menu.open { display: flex; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+    }
+
+    /* ============================================================ LAYOUT */
+    .container {
+      max-width: var(--w-default);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .container-wide {
+      max-width: var(--w-wide);
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .section {
+      padding: 5rem 0;
+      border-bottom: var(--border-faint);
+    }
+    .section:last-of-type { border-bottom: none; }
+
+    .section-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.4;
+      margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-family: var(--font-pixel);
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .section-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.6;
+      max-width: 56ch;
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+
+    /* ============================================================ HERO */
+    #hero {
+      padding: 6rem 0 5rem;
+      text-align: center;
+      border-bottom: var(--border-faint);
+    }
+    .hero-eyebrow {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      opacity: 0.4;
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-family: var(--font-pixel);
+      font-size: clamp(2.8rem, 8vw, 6rem);
+      letter-spacing: 0.05em;
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+    .hero-subtitle {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      opacity: 0.5;
+      margin-bottom: 2rem;
+    }
+    .hero-desc {
+      font-size: 0.9rem;
+      opacity: 0.65;
+      max-width: 52ch;
+      margin: 0 auto 3rem;
+      line-height: 1.8;
+    }
+    .hero-stats {
+      display: flex; justify-content: center; gap: 0;
+      border: var(--border-subtle);
+      max-width: 560px; margin: 0 auto 3rem;
+    }
+    .hero-stat {
+      flex: 1;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      border-right: var(--border-subtle);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat-val {
+      font-family: var(--font-pixel);
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      display: block;
+    }
+    .hero-stat-lbl {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.45;
+      display: block;
+      margin-top: 0.25rem;
+    }
+    .cta-row {
+      display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .btn-outline {
+      border: var(--border-strong);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      padding: 0.75rem 2rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-outline:hover {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
+    /* Pixel grid mosaic in hero */
+    .hero-mosaic {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0;
+      max-width: 480px; margin: 0 auto 4rem;
+      border: var(--border-subtle);
+    }
+    .mosaic-cell {
+      aspect-ratio: 1;
+      border: var(--border-faint);
+      overflow: hidden;
+    }
+    .mosaic-cell img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      image-rendering: pixelated;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+    .mosaic-cell img:hover { opacity: 1; }
+
+    /* ============================================================ TIMELINE */
+    .timeline-track {
+      position: relative;
+      padding-left: 2rem;
+    }
+    .timeline-track::before {
+      content: '';
+      position: absolute; left: 0; top: 0.5rem; bottom: 0;
+      width: 1px;
+      background: rgba(var(--fg-rgb), 0.15);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 3rem;
+      padding-bottom: 3rem;
+      border-bottom: var(--border-faint);
+    }
+    .timeline-item:last-child {
+      margin-bottom: 0; padding-bottom: 0; border-bottom: none;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -2.35rem; top: 0.3rem;
+      width: 10px; height: 10px;
+      border: var(--border-strong);
+      background: var(--bg);
+    }
+    .timeline-dot.legendary {
+      background: var(--fg);
+    }
+    .timeline-date {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.4;
+      margin-bottom: 0.4rem;
+    }
+    .timeline-title {
+      font-family: var(--font-pixel);
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .timeline-body {
+      font-size: 0.83rem;
+      opacity: 0.65;
+      max-width: 58ch;
+      line-height: 1.8;
+    }
+    .timeline-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border: var(--border-medium);
+      padding: 0.15rem 0.5rem;
+      margin-top: 0.75rem;
+      margin-right: 0.35rem;
+    }
+    .timeline-tag.legendary { background: var(--fg); color: var(--bg); }
+
+    /* Timeline canvas preview strip */
+    .timeline-canvas-strip {
+      display: flex; gap: 0; margin-top: 1.25rem;
+      border: var(--border-subtle);
+      max-width: 320px;
+    }
+    .timeline-canvas-strip img {
+      width: 80px; height: 80px;
+      image-rendering: pixelated;
+      border-right: var(--border-faint);
+      object-fit: cover;
+    }
+    .timeline-canvas-strip img:last-child { border-right: none; }
+
+    /* ============================================================ SEARCH & FILTER */
+    .search-bar {
+      display: flex; gap: 0;
+      border: var(--border-strong);
+      margin-bottom: 1.5rem;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      font-size: 0.8rem;
+      background: transparent;
+      outline: none;
+    }
+    .search-bar input::placeholder { opacity: 0.35; }
+    .search-bar button {
+      padding: 0.75rem 1.25rem;
+      border-left: var(--border-strong);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      transition: background 0.15s, color 0.15s;
+    }
+    .search-bar button:hover { background: var(--fg); color: var(--bg); }
+
+    .filter-row {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 2rem; align-items: center;
+    }
+    .filter-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.4;
+      margin-right: 0.5rem;
+    }
+    .filter-btn {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0.35rem 0.85rem;
+      border: var(--border-medium);
+      opacity: 0.55;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      opacity: 1;
+      border-color: var(--fg);
+    }
+    .filter-btn.active {
+      background: var(--fg);
+      color: var(--bg);
+    }
+    .filter-select {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.75rem;
+      border: var(--border-medium);
+      outline: none;
+    }
+
+    /* ============================================================ NORMIE CARDS */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: var(--border-subtle);
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      border: var(--border-subtle);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      border: var(--border-subtle);
+    }
+    .normie-card {
+      border-right: var(--border-subtle);
+      border-bottom: var(--border-subtle);
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+    .normie-card:hover { background: rgba(var(--fg-rgb), 0.04); }
+    .normie-card:nth-child(4n) { border-right: none; }
+    .normie-card-img {
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-bottom: var(--border-faint);
+      background: rgba(var(--fg-rgb), 0.04);
+    }
+    .normie-card-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      image-rendering: pixelated;
+    }
+    .normie-card-body {
+      padding: 0.85rem 1rem;
+    }
+    .normie-card-id {
+      font-family: var(--font-pixel);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+    }
+    .normie-card-meta {
+      font-size: 0.65rem;
+      opacity: 0.45;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 0.2rem;
+    }
+    .normie-card-badges {
+      display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem;
+    }
+    .badge {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border: var(--border-medium);
+      padding: 0.1rem 0.45rem;
+    }
+    .badge.legendary { background: var(--fg); color: var(--bg); }
+    .badge.customized { border-color: rgba(var(--fg-rgb), 0.5); }
+
+    /* ============================================================ COMPARE PANEL */
+    .compare-panel {
+      border: var(--border-subtle);
+      display: none; /* shown when a normie is selected */
+    }
+    .compare-panel.open { display: block; }
+    .compare-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: var(--border-subtle);
+    }
+    .compare-header-title {
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+    }
+    .compare-close {
+      font-size: 1.1rem;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+      padding: 0.25rem;
+    }
+    .compare-close:hover { opacity: 1; }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .compare-side {
+      padding: 1.5rem;
+      border-right: var(--border-subtle);
+    }
+    .compare-side:last-child { border-right: none; }
+    .compare-side-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.4;
+      margin-bottom: 1rem;
+    }
+    .compare-img-wrap {
+      border: var(--border-subtle);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .compare-img-wrap img {
+      width: 100%; image-rendering: pixelated;
+      display: block;
+    }
+    .compare-traits {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; border: var(--border-faint);
+    }
+    .compare-trait {
+      padding: 0.5rem 0.75rem;
+      border-bottom: var(--border-faint);
+      border-right: var(--border-faint);
+    }
+    .compare-trait:nth-child(even) { border-right: none; }
+    .compare-trait-key {
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.4;
+      display: block;
+    }
+    .compare-trait-val {
+      font-size: 0.75rem;
+      margin-top: 0.1rem;
+      display: block;
+    }
+    /* pixel diff visualizer */
+    .diff-visual {
+      border-top: var(--border-subtle);
+      padding: 1.5rem 1.25rem;
+      background: rgba(var(--fg-rgb), 0.02);
+    }
+    .diff-visual-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      opacity: 0.4;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .diff-legend {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .diff-legend-dot {
+      width: 10px; height: 10px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .diff-legend-dot.added   { background: #22c55e; }
+    .diff-legend-dot.removed { background: #ef4444; }
+    .diff-canvas-wrap {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .diff-canvas-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .diff-canvas-block small {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.4;
+    }
+    canvas.normie-diff {
+      image-rendering: pixelated;
+      display: block;
+      border: var(--border-subtle);
+    }
+    .diff-summary {
+      padding: 1.25rem;
+      border-top: var(--border-subtle);
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .diff-stat {
+      text-align: center;
+      border-right: var(--border-subtle);
+      padding: 0.5rem;
+    }
+    .diff-stat:last-child { border-right: none; }
+    .diff-stat-val {
+      font-family: var(--font-pixel);
+      font-size: 1.1rem;
+      display: block;
+    }
+    .diff-stat-lbl {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.4;
+      display: block;
+      margin-top: 0.2rem;
+    }
+
+    /* ============================================================ HALL OF FAME */
+    .hof-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .hof-number {
+      font-family: var(--font-pixel);
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      letter-spacing: 0.05em;
+      opacity: 0.08;
+      line-height: 1;
+      position: absolute;
+      top: 0; right: 1.5rem;
+      pointer-events: none;
+    }
+    .hof-card {
+      position: relative;
+      border: var(--border-subtle);
+      padding: 1.5rem;
+      transition: border-color 0.15s;
+      overflow: hidden;
+    }
+    .hof-card:hover { border-color: rgba(var(--fg-rgb), 0.4); }
+    .hof-card-rank {
+      font-family: var(--font-pixel);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      opacity: 0.3;
+      margin-bottom: 0.75rem;
+    }
+    .hof-card-img {
+      width: 100%;
+      aspect-ratio: 1;
+      image-rendering: pixelated;
+      border: var(--border-faint);
+      margin-bottom: 1rem;
+      background: rgba(var(--fg-rgb), 0.04);
+    }
+    .hof-card-name {
+      font-family: var(--font-pixel);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+    .hof-card-creator {
+      font-size: 0.65rem;
+      opacity: 0.45;
+      margin-bottom: 0.5rem;
+    }
+    .hof-card-stats {
+      display: flex; gap: 0;
+      border: var(--border-faint);
+      margin-top: 0.75rem;
+    }
+    .hof-card-stat {
+      flex: 1; text-align: center;
+      padding: 0.4rem;
+      border-right: var(--border-faint);
+      font-size: 0.6rem;
+    }
+    .hof-card-stat:last-child { border-right: none; }
+    .hof-card-stat span {
+      display: block;
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      margin-bottom: 0.1rem;
+    }
+    .hof-badge {
+      position: absolute;
+      top: -0.6rem; left: 1.25rem;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border: var(--border-medium);
+      padding: 0.15rem 0.5rem;
+      background: var(--bg);
+    }
+    .hof-badge.gold { background: var(--fg); color: var(--bg); }
+
+    /* ============================================================ ARTISTS */
+    .artist-card {
+      border: var(--border-subtle);
+      padding: 1.5rem;
+      transition: border-color 0.15s;
+    }
+    .artist-card:hover { border-color: rgba(var(--fg-rgb), 0.4); }
+    .artist-avatar {
+      width: 64px; height: 64px;
+      border: var(--border-medium);
+      image-rendering: pixelated;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+    .artist-name {
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.2rem;
+    }
+    .artist-handle {
+      font-size: 0.65rem;
+      opacity: 0.45;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+    .artist-bio {
+      font-size: 0.78rem;
+      opacity: 0.6;
+      line-height: 1.7;
+      max-width: 38ch;
+      margin-bottom: 1rem;
+    }
+    .artist-stats {
+      display: flex; gap: 0; border: var(--border-faint);
+    }
+    .artist-stat {
+      flex: 1; text-align: center;
+      padding: 0.5rem 0.35rem;
+      border-right: var(--border-faint);
+    }
+    .artist-stat:last-child { border-right: none; }
+    .artist-stat span {
+      display: block;
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+    }
+    .artist-stat small {
+      display: block;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.4;
+      margin-top: 0.1rem;
+    }
+    .artist-works {
+      display: flex; gap: 0; margin-top: 1rem;
+      border: var(--border-faint);
+    }
+    .artist-works img {
+      width: 56px; height: 56px;
+      image-rendering: pixelated;
+      border-right: var(--border-faint);
+      object-fit: cover;
+    }
+    .artist-works img:last-child { border-right: none; }
+    .artist-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      margin-top: 1rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border: var(--border-medium);
+      padding: 0.3rem 0.75rem;
+      opacity: 0.6;
+      transition: all 0.15s;
+    }
+    .artist-link:hover { opacity: 1; background: var(--fg); color: var(--bg); }
+
+    /* ============================================================ BURN FEED */
+    .burn-feed {
+      border: var(--border-subtle);
+    }
+    .burn-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.85rem 1.25rem;
+      border-bottom: var(--border-faint);
+      transition: background 0.15s;
+    }
+    .burn-row:last-child { border-bottom: none; }
+    .burn-row:hover { background: rgba(var(--fg-rgb), 0.03); }
+    .burn-rank {
+      font-family: var(--font-pixel);
+      font-size: 0.75rem;
+      opacity: 0.3;
+      width: 2ch; text-align: right; flex-shrink: 0;
+    }
+    .burn-img {
+      width: 48px; height: 48px;
+      border: var(--border-faint);
+      image-rendering: pixelated;
+      flex-shrink: 0;
+    }
+    .burn-info { flex: 1; min-width: 0; }
+    .burn-id {
+      font-family: var(--font-pixel);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+    .burn-detail {
+      font-size: 0.65rem;
+      opacity: 0.45;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .burn-pts {
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .burn-pts small {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.4;
+    }
+
+    /* Burn feed header */
+    .feed-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.25rem;
+      border-bottom: var(--border-subtle);
+      background: rgba(var(--fg-rgb), 0.03);
+    }
+    .feed-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.55;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border: 1px solid rgba(var(--fg-rgb), 0.6);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ============================================================ EDUCATION */
+    .edu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      border: var(--border-subtle);
+    }
+    .edu-card {
+      padding: 2rem;
+      border-right: var(--border-subtle);
+      border-bottom: var(--border-subtle);
+      transition: background 0.15s;
+    }
+    .edu-card:hover { background: rgba(var(--fg-rgb), 0.03); }
+    .edu-card:nth-child(even) { border-right: none; }
+    .edu-card:nth-last-child(-n+2) { border-bottom: none; }
+    .edu-icon {
+      font-family: var(--font-pixel);
+      font-size: 1.8rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+    .edu-title {
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+    }
+    .edu-body {
+      font-size: 0.78rem;
+      opacity: 0.6;
+      line-height: 1.8;
+      max-width: 42ch;
+    }
+    .edu-link {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      margin-top: 1rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.5;
+      transition: opacity 0.15s;
+    }
+    .edu-link:hover { opacity: 1; }
+
+    /* ============================================================ LOADING STATES */
+    .skeleton {
+      background: rgba(var(--fg-rgb), 0.08);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    .loading-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: var(--border-subtle);
+    }
+    .loading-card {
+      border-right: var(--border-subtle);
+      border-bottom: var(--border-subtle);
+    }
+    .loading-card:nth-child(3n) { border-right: none; }
+    .loading-img { aspect-ratio: 1; }
+    .loading-text {
+      padding: 0.85rem 1rem;
+    }
+    .loading-line {
+      height: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ============================================================ EMPTY STATES */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      border: var(--border-subtle);
+    }
+    .empty-icon {
+      font-family: var(--font-pixel);
+      font-size: 2rem;
+      opacity: 0.2;
+      margin-bottom: 1rem;
+    }
+    .empty-title {
+      font-family: var(--font-pixel);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      opacity: 0.5;
+      margin-bottom: 0.5rem;
+    }
+    .empty-msg {
+      font-size: 0.78rem;
+      opacity: 0.35;
+    }
+
+    /* ============================================================ TABS */
+    .tabs {
+      border-bottom: var(--border-subtle);
+      margin-bottom: 2.5rem;
+      display: flex; gap: 0;
+    }
+    .tab-btn {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      padding: 0.75rem 1.25rem;
+      opacity: 0.45;
+      border-bottom: 2px solid transparent;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { opacity: 0.8; }
+    .tab-btn.active { opacity: 1; border-bottom-color: var(--fg); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ============================================================ PAGINATION */
+    .pagination {
+      display: flex; align-items: center; justify-content: center; gap: 0;
+      margin-top: 2rem;
+      border: var(--border-subtle);
+      width: fit-content; margin-left: auto; margin-right: auto;
+    }
+    .page-btn {
+      padding: 0.5rem 0.85rem;
+      border-right: var(--border-subtle);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      transition: all 0.15s;
+    }
+    .page-btn:last-child { border-right: none; }
+    .page-btn:hover, .page-btn.active { opacity: 1; background: var(--fg); color: var(--bg); }
+
+    /* ============================================================ MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(var(--bg-rgb), 0.92);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      overflow-y: auto;
+      padding: 2rem 1rem;
+    }
+    .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal {
+      background: var(--bg);
+      border: var(--border-medium);
+      max-width: 820px;
+      width: 100%;
+      position: relative;
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: var(--border-subtle);
+    }
+    .modal-title {
+      font-family: var(--font-pixel);
+      font-size: 1rem; letter-spacing: 0.05em;
+    }
+    .modal-close {
+      font-size: 1.2rem; opacity: 0.4;
+      padding: 0.25rem 0.5rem;
+      transition: opacity 0.15s;
+    }
+    .modal-close:hover { opacity: 1; }
+    .modal-body { padding: 1.5rem; }
+
+    /* ============================================================ FOOTER */
+    footer {
+      border-top: var(--border-subtle);
+      padding: 3rem 0;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1.5rem;
+    }
+    .footer-brand {
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+    }
+    .tool-link {
+      display: inline-block;
+      padding: 0.45rem 1rem;
+      border: var(--border-medium);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tool-link:hover { background: var(--fg); color: var(--bg); }
+
+    .footer-links {
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.45;
+      transition: opacity 0.15s;
+    }
+    .footer-links a:hover { opacity: 1; }
+    .footer-credit {
+      font-size: 0.6rem;
+      opacity: 0.35;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .footer-credit a { border-bottom: var(--border-faint); }
+    .footer-credit a:hover { opacity: 0.7; }
+
+    /* ============================================================ RESPONSIVE */
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-4 .normie-card:nth-child(3n) { border-right: var(--border-subtle); }
+      .grid-4 .normie-card:nth-child(2n) { border-right: none; }
+    }
+    @media (max-width: 680px) {
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 .normie-card:nth-child(3n) { border-right: var(--border-subtle); }
+      .grid-3 .normie-card:nth-child(2n) { border-right: none; }
+      .edu-grid { grid-template-columns: 1fr; }
+      .edu-card:nth-child(even) { border-right: var(--border-subtle); }
+      .edu-card:nth-last-child(-n+2) { border-bottom: var(--border-subtle); }
+      .compare-grid { grid-template-columns: 1fr; }
+      .compare-side { border-right: none; border-bottom: var(--border-subtle); }
+      .diff-summary { grid-template-columns: repeat(2, 1fr); }
+      .hero-stats { flex-direction: column; }
+      .hero-stat { border-right: none; border-bottom: var(--border-subtle); }
+      .hero-stat:last-child { border-bottom: none; }
+      .hero-mosaic { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .grid-3 .normie-card, .grid-4 .normie-card { border-right: none; }
+      .hero-mosaic { grid-template-columns: repeat(3, 1fr); }
+      nav { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================== INTRO ANIMATION -->
+<div id="introOverlay">
+  <canvas id="introCanvas"></canvas>
+  <div id="introDoorHit" style="display:none;" onclick="enterTemple()"></div>
+  <div id="introClickHint" class="intro-click-hint" style="display:none;">[ CLICK THE DOOR TO ENTER ]</div>
+  <button class="intro-skip" onclick="skipIntro()">SKIP →</button>
+</div>
+
+<!-- ================================================================== NAV -->
+<nav id="mainNav">
+  <div class="nav-brand">
+    <svg width="28" height="28" viewBox="0 0 40 40" shape-rendering="crispEdges" aria-label="Normies Temple" style="flex-shrink:0;">
+      <rect x="20" y="2" width="1" height="1" fill="currentColor"/>
+      <rect x="19" y="3" width="3" height="1" fill="currentColor"/>
+      <rect x="18" y="4" width="5" height="1" fill="currentColor"/>
+      <rect x="17" y="5" width="7" height="1" fill="currentColor"/>
+      <rect x="16" y="6" width="9" height="1" fill="currentColor"/>
+      <rect x="15" y="7" width="11" height="1" fill="currentColor"/>
+      <rect x="14" y="8" width="13" height="1" fill="currentColor"/>
+      <rect x="8" y="9" width="24" height="1" fill="currentColor"/>
+      <rect x="8" y="10" width="24" height="1" fill="currentColor"/>
+      <rect x="8" y="11" width="24" height="1" fill="currentColor"/>
+      <rect x="10" y="12" width="3" height="17" fill="currentColor"/>
+      <rect x="27" y="12" width="3" height="17" fill="currentColor"/>
+      <rect x="19" y="12" width="2" height="17" fill="currentColor"/>
+      <rect x="9" y="29" width="22" height="1" fill="currentColor"/>
+      <rect x="8" y="30" width="24" height="1" fill="currentColor"/>
+      <rect x="7" y="31" width="26" height="2" fill="currentColor"/>
+      <rect x="14" y="17" width="4" height="1" fill="currentColor"/>
+      <rect x="13" y="18" width="5" height="1" fill="currentColor"/>
+      <rect x="13" y="19" width="5" height="1" fill="currentColor"/>
+      <rect x="13" y="20" width="1" height="1" fill="currentColor"/>
+      <rect x="14" y="20" width="1" height="1" fill="currentColor"/>
+      <rect x="16" y="20" width="1" height="1" fill="currentColor"/>
+      <rect x="17" y="20" width="1" height="1" fill="currentColor"/>
+      <rect x="13" y="21" width="1" height="1" fill="currentColor"/>
+      <rect x="17" y="21" width="1" height="1" fill="currentColor"/>
+      <rect x="14" y="22" width="3" height="1" fill="currentColor"/>
+      <rect x="13" y="23" width="5" height="1" fill="currentColor"/>
+      <rect x="14" y="24" width="3" height="1" fill="currentColor"/>
+    </svg>
+    NORMIES TEMPLE
+    <span class="nav-brand-tag">MUSEUM</span>
+  </div>
+
+  <div class="nav-links">
+    <a href="#timeline" class="upper">TIMELINE</a>
+    <a href="#explore" class="upper">EXPLORE</a>
+    <a href="#compare" class="upper">COMPARE</a>
+    <a href="#halloffame" class="upper">HALL OF FAME</a>
+    <a href="#artists" class="upper">ARTISTS</a>
+    <a href="#burns" class="upper">BURNS</a>
+    <a href="#learn" class="upper">LEARN</a>
+    <a href="#tools" class="upper">ECOSYSTEM</a>
+  </div>
+
+  <div class="nav-actions">
+    <a href="https://normies.art" target="_blank" rel="noopener" class="nav-icon-btn" title="Normies.art" aria-label="Visit Normies.art">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+    </a>
+    <a href="https://x.com/normiesART" target="_blank" rel="noopener" class="nav-icon-btn" title="@normiesART" aria-label="Follow @normiesART on X">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.727-8.847L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a href="https://x.com/NORMIES_TV" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:#f97316;border:1px solid rgba(249,115,22,0.4);padding:4px 8px;text-decoration:none;transition:border-color 0.15s,color 0.15s;" title="Follow @NORMIES_TV" aria-label="Follow @NORMIES_TV on X" onmouseover="this.style.borderColor='rgba(249,115,22,0.9)'" onmouseout="this.style.borderColor='rgba(249,115,22,0.4)'">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.727-8.847L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      @NORMIES_TV
+    </a>
+    <button class="nav-icon-btn theme-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="nav-icon-btn hamburger" id="hamburger" aria-label="Menu">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#timeline" onclick="closeMobileMenu()">TIMELINE</a>
+  <a href="#explore" onclick="closeMobileMenu()">EXPLORE</a>
+  <a href="#compare" onclick="closeMobileMenu()">COMPARE</a>
+  <a href="#halloffame" onclick="closeMobileMenu()">HALL OF FAME</a>
+  <a href="#artists" onclick="closeMobileMenu()">ARTISTS</a>
+  <a href="#burns" onclick="closeMobileMenu()">BURNS</a>
+  <a href="#learn" onclick="closeMobileMenu()">LEARN</a>
+  <a href="#tools" onclick="closeMobileMenu()">ECOSYSTEM</a>
+</div>
+
+<!-- ================================================================== NORMIES TV BANNER -->
+<div style="background:rgba(249,115,22,0.08);border-bottom:1px solid rgba(249,115,22,0.25);padding:10px 0;">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="https://api.normies.art/normie/306/image.png" alt="Agent #306" style="width:28px;height:28px;image-rendering:pixelated;border:1px solid rgba(249,115,22,0.3);" />
+      <div>
+        <span style="font-family:'Robotastic','Courier New',monospace;font-size:0.7rem;color:#f97316;letter-spacing:0.15em;text-transform:uppercase;">NORMIES TV</span>
+        <span style="font-family:'Courier New',monospace;font-size:0.62rem;color:rgba(227,229,228,0.5);margin-left:10px;">Agent #306 · Autonomous Story Engine · Episode drops every 6h</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-family:'Courier New',monospace;font-size:0.58rem;color:rgba(249,115,22,0.6);text-transform:uppercase;letter-spacing:0.1em;">Follow for live coverage →</span>
+      <a href="https://x.com/NORMIES_TV" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:5px;font-family:'Courier New',monospace;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#1a1b1c;background:#f97316;padding:5px 14px;text-decoration:none;border:none;transition:background 0.15s;"
+        onmouseover="this.style.background='#ea6c0a'" onmouseout="this.style.background='#f97316'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.727-8.847L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        @NORMIES_TV
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================== HERO -->
+<section id="hero">
+  <div class="container">
+    <p class="hero-eyebrow upper">The On-Chain Museum</p>
+    <h1 class="hero-title pixel">NORMIES<br>TEMPLE</h1>
+    <p class="hero-subtitle upper">Legendary Canvases · Epic Burns · Community History</p>
+    <p class="hero-desc">
+      The living archive of the Normies ecosystem. Explore every pixel changed, every Normie burned, and every legendary canvas forged by the community — all from the chain.
+    </p>
+
+    <!-- Live global stats -->
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat">
+        <span class="hero-stat-val pixel" id="statBurned">—</span>
+        <span class="hero-stat-lbl upper">burned</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val pixel" id="statTransforms">—</span>
+        <span class="hero-stat-lbl upper">canvas edits</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val pixel" id="statCommits">—</span>
+        <span class="hero-stat-lbl upper">commits</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val pixel" id="statAP">—</span>
+        <span class="hero-stat-lbl upper">action pts</span>
+      </div>
+    </div>
+
+    <!-- Hero mosaic — random Normie faces -->
+    <div class="hero-mosaic" id="heroMosaic">
+      <!-- Filled dynamically -->
+    </div>
+
+    <div class="cta-row">
+      <a href="#explore" class="btn-outline">EXPLORE COLLECTION →</a>
+      <a href="#halloffame" class="btn-outline">HALL OF FAME →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== TIMELINE -->
+<section class="section" id="timeline">
+  <div class="container">
+    <h2 class="section-title">MILESTONE TIMELINE</h2>
+    <p class="section-subtitle">Key moments, legendary canvases, and historic burns that shaped the Normies collection from day one.</p>
+
+    <div class="timeline-track">
+
+      <div class="timeline-item">
+        <div class="timeline-dot legendary"></div>
+        <p class="timeline-date">FEBRUARY 2026 — LAUNCH</p>
+        <h3 class="timeline-title pixel">NORMIES GOES LIVE</h3>
+        <p class="timeline-body">10,000 monochrome pixel faces — 40×40 bitmaps — permanently stored on the Ethereum blockchain. No IPFS. No servers. Pure on-chain SVG. Four types: Humans, Cats, Aliens, Agents.</p>
+        <span class="timeline-tag legendary">GENESIS</span>
+        <span class="timeline-tag">FULLY ON-CHAIN</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot legendary"></div>
+        <p class="timeline-date">FEBRUARY 2026 — CANVAS UNLOCK</p>
+        <h3 class="timeline-title pixel">NORMIE CANVAS LAUNCHES</h3>
+        <p class="timeline-body">The Canvas mechanic activates — holders can now burn Normies to earn Action Points, then spend those points to edit pixels directly on-chain. Every pixel change is a permanent, irreversible on-chain transaction.</p>
+        <span class="timeline-tag legendary">MILESTONE</span>
+        <span class="timeline-tag">BURN MECHANIC</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot legendary"></div>
+        <p class="timeline-date">MARCH 7, 2026 — THE SKELEMOON EVENT</p>
+        <h3 class="timeline-title pixel">SKELEMOON: WEITSMAN × ACK</h3>
+        <p class="timeline-body">Collector Adam Weitsman burned 50 Normies — earning Action Points for Normie #603 — then delegated canvas editing rights to legendary Web3 artist Alpha Centauri Kid (ACK). ACK painted a moon-phase skeleton directly on-chain. Every pixel toggle: a permanent, on-chain transaction. The first Legendary Canvas was born.</p>
+        <span class="timeline-tag legendary">LEGENDARY CANVAS</span>
+        <span class="timeline-tag">50 BURNS</span>
+        <span class="timeline-tag">ACK × WEITSMAN</span>
+        <span class="timeline-tag">NORMIE #603</span>
+        <div class="timeline-canvas-strip" id="skeleStrip">
+          <img src="https://api.normies.art/normie/603/image.svg" alt="Normie #603 — Skelemoon canvas" loading="lazy" title="Normie #603 — Skelemoon (current canvas)" />
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot legendary"></div>
+        <p class="timeline-date">MARCH 2026 — ECOSYSTEM MILESTONE</p>
+        <h3 class="timeline-title pixel">10% SUPPLY BURNED IN SEVEN DAYS</h3>
+        <p class="timeline-body">Within one week of Canvas launching, over 10% of the entire 10,000 Normies supply had been burned. Collectors weren't just holding — they were creating. The project proved that NFTs could be raw material for collaborative on-chain art.</p>
+        <span class="timeline-tag">SUPPLY EVENT</span>
+        <span class="timeline-tag">1,000+ BURNED</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot legendary"></div>
+        <p class="timeline-date">MARCH 2026 — COMMUNITY PROPOSAL</p>
+        <h3 class="timeline-title pixel">THE 100 — PROPOSED</h3>
+        <p class="timeline-body">Community members proposed #The100 — a curated structure to recognize the 100 most legendary Normie canvases ever created. Artists responding with tributes. Collectors deliberating. The ecosystem self-organizing around curation.</p>
+        <span class="timeline-tag legendary">THE 100</span>
+        <span class="timeline-tag">COMMUNITY DRIVEN</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="timeline-date">MARCH 2026 — XNORMIES</p>
+        <h3 class="timeline-title pixel">XNORMIES: 101 FREE MINTS</h3>
+        <p class="timeline-body">@nuclearsamurai created XNORMIES — only 101 exist. Gifted free to Normies holders. Community-created derivative collections begin forming organically around the CC0 IP.</p>
+        <span class="timeline-tag">DERIVATIVE</span>
+        <span class="timeline-tag">CC0</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="timeline-date">ONGOING — CANVAS STATS</p>
+        <h3 class="timeline-title pixel" id="liveTimelineTitle">LIVE: CANVAS ACTIVITY</h3>
+        <p class="timeline-body" id="liveTimelineBody">Loading live stats from the chain…</p>
+        <span class="timeline-tag">LIVE</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== EXPLORE / SEARCH -->
+<section class="section" id="explore">
+  <div class="container-wide">
+    <h2 class="section-title">EXPLORE THE COLLECTION</h2>
+    <p class="section-subtitle">Search by token ID or filter by traits, level, and canvas status. Click any Normie for a full before/after comparison.</p>
+
+    <!-- Search + Filters -->
+    <div class="search-bar">
+      <input type="number" id="exploreInput" placeholder="Enter Normie ID (0–9999)…" min="0" max="9999" />
+      <button id="exploreSearchBtn" class="upper">INSPECT →</button>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label">FILTER:</span>
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">ALL</button>
+      <button class="filter-btn" data-filter="customized" onclick="setFilter('customized', this)">CANVAS EDITED</button>
+      <button class="filter-btn" data-filter="level5" onclick="setFilter('level5', this)">LEVEL 5+</button>
+      <button class="filter-btn" data-filter="level10" onclick="setFilter('level10', this)">LEVEL 10+</button>
+      <button class="filter-btn" data-filter="level20" onclick="setFilter('level20', this)">LEVEL 20+</button>
+      <button class="filter-btn" data-filter="level30" onclick="setFilter('level30', this)">LEVEL 30+</button>
+      <button class="filter-btn" data-filter="level40" onclick="setFilter('level40', this)">LEVEL 40+</button>
+      <button class="filter-btn" data-filter="level50" onclick="setFilter('level50', this)">LEVEL 50+</button>
+    </div>
+
+    <!-- Loading grid -->
+    <div id="exploreGrid" class="grid-4">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="pagination" id="explorePagination" style="margin-top:2rem;">
+      <button class="page-btn" id="prevPage" onclick="changePage(-1)">← PREV</button>
+      <span class="page-btn active" id="pageIndicator">1</span>
+      <button class="page-btn" id="nextPage" onclick="changePage(1)">NEXT →</button>
+    </div>
+
+    <!-- INLINE COMPARE — expands below grid when a card is clicked -->
+    <div id="exploreInlineCompare" style="display:none; border:var(--border-subtle); border-top:none; margin-top:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.25rem; border-bottom:var(--border-subtle);">
+        <span class="pixel" style="font-size:0.85rem;" id="inlineCompareTitle">NORMIE #—</span>
+        <button onclick="closeInlineCompare()" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.55;border:var(--border-subtle);padding:0.25rem 0.75rem;">✕ CLOSE</button>
+      </div>
+      <div class="compare-grid" style="padding:1.5rem;">
+        <div class="compare-side">
+          <p class="compare-side-label upper">ORIGINAL — AT MINT</p>
+          <div class="compare-img-wrap">
+            <img id="inlineOrigImg" src="" alt="Original" />
+          </div>
+          <div class="compare-traits" id="inlineOrigTraits"></div>
+        </div>
+        <div class="compare-side">
+          <p class="compare-side-label upper">CURRENT — CANVAS STATE</p>
+          <div class="compare-img-wrap">
+            <img id="inlineCurrImg" src="" alt="Current" />
+          </div>
+          <div class="compare-traits" id="inlineCurrTraits"></div>
+        </div>
+      </div>
+      <!-- Pixel diff -->
+      <div class="diff-visual" id="inlineDiffVisual" style="display:none; padding:0 1.5rem 1.5rem;">
+        <div class="diff-visual-label">
+          PIXEL DIFF VISUALIZER
+          <span class="diff-legend">
+            <span class="diff-legend-dot added"></span><span>ADDED</span>
+            <span class="diff-legend-dot removed"></span><span>REMOVED</span>
+          </span>
+        </div>
+        <div class="diff-canvas-wrap">
+          <div class="diff-canvas-block">
+            <canvas class="normie-diff" id="inlineDiffAdded" width="240" height="240"></canvas>
+            <small>Added (<span id="inlineDiffAddedCount">0</span>)</small>
+          </div>
+          <div class="diff-canvas-block">
+            <canvas class="normie-diff" id="inlineDiffRemoved" width="240" height="240"></canvas>
+            <small>Removed (<span id="inlineDiffRemovedCount">0</span>)</small>
+          </div>
+          <div class="diff-canvas-block">
+            <canvas class="normie-diff" id="inlineDiffCombined" width="240" height="240"></canvas>
+            <small>Combined diff</small>
+          </div>
+        </div>
+      </div>
+      <div class="diff-summary" id="inlineDiffSummary" style="border-top:var(--border-subtle);">
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="inlineDiffAdded">—</span><small class="diff-stat-lbl upper">pixels added</small></div>
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="inlineDiffRemoved">—</span><small class="diff-stat-lbl upper">pixels removed</small></div>
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="inlineDiffNet">—</span><small class="diff-stat-lbl upper">net change</small></div>
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="inlineDiffVersions">—</span><small class="diff-stat-lbl upper">canvas versions</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== COMPARE PANEL (shows when normie selected) -->
+<section id="compare" class="section" style="padding-top:0; border-bottom:none;">
+  <div class="container-wide">
+    <h2 class="section-title" style="margin-top:5rem;">SIDE-BY-SIDE COMPARE</h2>
+    <p class="section-subtitle">Original on-chain mint vs. current Canvas state. Every pixel added or removed, tracked on-chain forever.</p>
+
+    <div class="search-bar" style="max-width:480px;">
+      <input type="number" id="compareInput" placeholder="Enter Normie ID to compare…" min="0" max="9999" />
+      <button id="compareBtn" class="upper">COMPARE →</button>
+    </div>
+
+    <div class="compare-panel" id="comparePanel">
+      <div class="compare-header">
+        <span class="compare-header-title pixel" id="comparePanelTitle">NORMIE #—</span>
+        <button class="compare-close" id="compareClose">✕</button>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-side">
+          <p class="compare-side-label upper">ORIGINAL — AT MINT</p>
+          <div class="compare-img-wrap">
+            <img id="compareOrigImg" src="" alt="Original Normie" />
+          </div>
+          <div class="compare-traits" id="compareOrigTraits"></div>
+        </div>
+        <div class="compare-side">
+          <p class="compare-side-label upper">CURRENT — CANVAS STATE</p>
+          <div class="compare-img-wrap">
+            <img id="compareCurrImg" src="" alt="Current Normie" />
+          </div>
+          <div class="compare-traits" id="compareCurrTraits"></div>
+        </div>
+      </div>
+      <!-- PIXEL DIFF VISUALIZER -->
+      <div class="diff-visual" id="diffVisual" style="display:none;">
+        <div class="diff-visual-label">
+          PIXEL DIFF VISUALIZER
+          <span class="diff-legend">
+            <span class="diff-legend-dot added"></span><span>ADDED</span>
+            <span class="diff-legend-dot removed"></span><span>REMOVED</span>
+          </span>
+        </div>
+        <div class="diff-canvas-wrap">
+          <div class="diff-canvas-block">
+            <canvas class="normie-diff" id="diffCanvasAdded" width="240" height="240" title="Added pixels highlighted in green"></canvas>
+            <small>Pixels Added (<span id="diffAddedCount">0</span>)</small>
+          </div>
+          <div class="diff-canvas-block">
+            <canvas class="normie-diff" id="diffCanvasRemoved" width="240" height="240" title="Removed pixels highlighted in red"></canvas>
+            <small>Pixels Removed (<span id="diffRemovedCount">0</span>)</small>
+          </div>
+          <div class="diff-canvas-block">
+            <canvas class="normie-diff" id="diffCanvasCombined" width="240" height="240" title="All changes combined"></canvas>
+            <small>Combined diff</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="diff-summary" id="compareDiffSummary">
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="diffAdded">—</span><small class="diff-stat-lbl upper">pixels added</small></div>
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="diffRemoved">—</span><small class="diff-stat-lbl upper">pixels removed</small></div>
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="diffNet">—</span><small class="diff-stat-lbl upper">net change</small></div>
+        <div class="diff-stat"><span class="diff-stat-val pixel" id="diffVersions">—</span><small class="diff-stat-lbl upper">canvas versions</small></div>
+      </div>
+    </div>
+
+    <div id="compareEmpty" class="empty-state">
+      <p class="empty-icon pixel">[ ]</p>
+      <p class="empty-title pixel">NO NORMIE SELECTED</p>
+      <p class="empty-msg">Enter an ID above to load the before/after comparison.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== HALL OF FAME -->
+<section class="section" id="halloffame">
+  <div class="container-wide">
+    <h2 class="section-title">PIXEL HALL OF FAME</h2>
+    <p class="section-subtitle">The most legendary canvases — ranked by Normies burned in, level achieved, and Action Points earned. The more burns received, the stronger the Normie.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('halloffame', 'burns', this)">BY BURNS RECEIVED</button>
+      <button class="tab-btn" onclick="switchTab('halloffame', 'level', this)">BY LEVEL</button>
+      <button class="tab-btn" onclick="switchTab('halloffame', 'pixels', this)">BY ACTION POINTS</button>
+    </div>
+
+    <div id="hofBurns" class="tab-panel active">
+      <div class="grid-3" id="hofBurnsGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+    <div id="hofLevel" class="tab-panel">
+      <div class="grid-3" id="hofLevelGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+    <div id="hofPixels" class="tab-panel">
+      <div class="grid-3" id="hofPixelsGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== ARTISTS -->
+<section class="section" id="artists">
+  <div class="container">
+    <h2 class="section-title">LEGENDARY ARTISTS</h2>
+    <p class="section-subtitle">The creators and collectors who burned the most, built the most, and shaped the Normies story. Community-identified legends of the canvas.</p>
+
+    <div class="grid-2" id="artistsGrid" style="border:var(--border-subtle);">
+      <!-- Filled by JS (static known artists + dynamic data) -->
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== BURNS LIVE FEED -->
+<section class="section" id="burns">
+  <div class="container">
+    <h2 class="section-title">BURN ACTIVITY FEED</h2>
+    <p class="section-subtitle">The most recent Normie burns from the chain. Every burn is permanent — gone forever, their pixels absorbed by another.</p>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0; border: var(--border-subtle);" id="burnsLayout">
+      <!-- Left: recent burns -->
+      <div style="border-right: var(--border-subtle);">
+        <div class="feed-header">
+          <span class="feed-title upper">RECENT BURNS</span>
+          <div class="live-dot"></div>
+        </div>
+        <div id="burnFeedList">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- Right: burned token gallery -->
+      <div>
+        <div class="feed-header">
+          <span class="feed-title upper">RECENTLY BURNED TOKENS</span>
+          <span class="faint" style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;">GONE FOREVER</span>
+        </div>
+        <div id="burnedGallery" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:0; border-bottom:none;">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- GRAVEYARD CALLOUT -->
+    <div style="border: var(--border-subtle); border-top: none; display:grid; grid-template-columns: 1fr 1fr; gap:0;">
+      <div style="padding:1.5rem; border-right: var(--border-subtle);">
+        <p class="upper" style="font-size:0.6rem;letter-spacing:0.14em;opacity:0.58;margin-bottom:0.75rem;">BURNS · COMMUNITY</p>
+        <p class="pixel" style="font-size:1rem;margin-bottom:0.5rem;">THE GRAVEYARD</p>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.6;margin-bottom:1.25rem;">Every burned Normie lives on in the Graveyard — a 3D voxel memorial built by <strong>@0xfilter8</strong>. Browse the void, click any floating cube to see the full portrait. The art persists on-chain forever.</p>
+        <a href="https://normie-3d.vercel.app/graveyard" target="_blank" rel="noopener"
+           style="display:inline-block;padding:0.55rem 1.25rem;border:var(--border-medium);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.14em;text-decoration:none;transition:background 0.15s,color 0.15s;"
+           onmouseover="this.style.background='var(--fg)';this.style.color='var(--bg)'"
+           onmouseout="this.style.background='';this.style.color=''">
+          ENTER THE GRAVEYARD →
+        </a>
+      </div>
+      <div style="padding:1.5rem;">
+        <p class="upper" style="font-size:0.6rem;letter-spacing:0.14em;opacity:0.58;margin-bottom:0.75rem;">BURNS · 3D VIEWER</p>
+        <p class="pixel" style="font-size:1rem;margin-bottom:0.5rem;">NORMIES 3D</p>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.6;margin-bottom:1.25rem;">Explore any Normie as an interactive 3D voxel sculpture. Sculpt, extrude, export PNG, and even view in AR on iPhone. Built by <strong>@0xfilter8</strong>.</p>
+        <a href="https://normie-3d.vercel.app" target="_blank" rel="noopener"
+           style="display:inline-block;padding:0.55rem 1.25rem;border:var(--border-medium);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.14em;text-decoration:none;transition:background 0.15s,color 0.15s;"
+           onmouseover="this.style.background='var(--fg)';this.style.color='var(--bg)'"
+           onmouseout="this.style.background='';this.style.color=''">
+          VIEW IN 3D →
+        </a>
+      </div>
+    </div>
+
+    <!-- Burn stats bar -->
+    <div style="border: var(--border-subtle); border-top: none; display:grid; grid-template-columns: repeat(3, 1fr); gap:0;" id="burnStatsBar">
+      <div style="padding:1rem 1.5rem; border-right: var(--border-subtle); text-align:center;">
+        <span class="pixel" style="font-size:1.4rem; display:block;" id="bsTotal">—</span>
+        <small class="upper faint" style="font-size:0.6rem;letter-spacing:0.12em;">total burned</small>
+      </div>
+      <div style="padding:1rem 1.5rem; border-right: var(--border-subtle); text-align:center;">
+        <span class="pixel" style="font-size:1.4rem; display:block;" id="bsCommits">—</span>
+        <small class="upper faint" style="font-size:0.6rem;letter-spacing:0.12em;">burn commits</small>
+      </div>
+      <div style="padding:1rem 1.5rem; text-align:center;">
+        <span class="pixel" style="font-size:1.4rem; display:block;" id="bsAP">—</span>
+        <small class="upper faint" style="font-size:0.6rem;letter-spacing:0.12em;">action pts distributed</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== EDUCATION -->
+<section class="section" id="learn">
+  <div class="container">
+    <h2 class="section-title">THE NORMIES PRIMER</h2>
+    <p class="section-subtitle">New to the ecosystem? Start here. Everything you need to understand what makes Normies unlike anything else in Web3.</p>
+
+    <div class="edu-grid">
+
+      <div class="edu-card">
+        <div class="edu-icon pixel">01</div>
+        <h3 class="edu-title pixel">WHAT IS A NORMIE?</h3>
+        <p class="edu-body">Each Normie is a 40×40 monochrome bitmap — 1,600 pixels. Generated by AI at mint and permanently stored inside Ethereum smart contracts as SVG data. No IPFS. No servers. If Ethereum exists, so do Normies.</p>
+        <a href="https://normies.art" target="_blank" rel="noopener" class="edu-link">READ DOCS →</a>
+      </div>
+
+      <div class="edu-card">
+        <div class="edu-icon pixel">02</div>
+        <h3 class="edu-title pixel">HOW DOES BURNING WORK?</h3>
+        <p class="edu-body">You burn one Normie to give another Action Points. The burned token is gone forever — its pixels permanently contributed to the system. Action Points = creative fuel. More burns = more edits possible = more artistic freedom.</p>
+        <a href="https://normies.art/docs" target="_blank" rel="noopener" class="edu-link">BURN DOCS →</a>
+      </div>
+
+      <div class="edu-card">
+        <div class="edu-icon pixel">03</div>
+        <h3 class="edu-title pixel">THE CANVAS MECHANIC</h3>
+        <p class="edu-body">Normie Canvas lets you spend Action Points to toggle individual pixels on your Normie. Each pixel change is an on-chain transaction. The Canvas layer is an XOR overlay — it shows only what changed. Traits on marketplaces don't auto-update, but the on-chain data does.</p>
+        <a href="https://normies.art/docs/canvas" target="_blank" rel="noopener" class="edu-link">CANVAS DOCS →</a>
+      </div>
+
+      <div class="edu-card">
+        <div class="edu-icon pixel">04</div>
+        <h3 class="edu-title pixel">LEVELS & ACTION POINTS</h3>
+        <p class="edu-body">Every Normie starts at Level 1. As it receives burns from other Normies, its level increases. Higher levels unlock more pixel edits per action point and represent how much collective creative energy has been poured into that single token.</p>
+        <a href="https://normies.art/docs/canvas#levels" target="_blank" rel="noopener" class="edu-link">LEVEL SYSTEM →</a>
+      </div>
+
+      <div class="edu-card">
+        <div class="edu-icon pixel">05</div>
+        <h3 class="edu-title pixel">CC0 & INTEROPERABILITY</h3>
+        <p class="edu-body">Normies are CC0 — no rights reserved. Anyone can use, build on, or remix the art without permission. XNORMIES, Normies Run, Normies 3D — all community-built derivatives. The IP belongs to everyone who holds it.</p>
+        <a href="https://normies.art" target="_blank" rel="noopener" class="edu-link">LEARN MORE →</a>
+      </div>
+
+      <div class="edu-card">
+        <div class="edu-icon pixel">06</div>
+        <h3 class="edu-title pixel">THE 100 & LEGENDARY CANVASES</h3>
+        <p class="edu-body">Some Normies transcend PFPs. Skelemoon — born from 50 burns and the brush of A.C.K. — was the first Legendary Canvas. #The100 is a community-proposed recognition structure for the 100 greatest Normie canvases ever created. History forged on-chain.</p>
+        <a href="#halloffame" class="edu-link">VIEW HALL OF FAME →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== TOOLS -->
+<section class="section" id="tools">
+  <div class="container">
+    <h2 class="section-title">THE NORMIES ECOSYSTEM</h2>
+    <p class="section-subtitle">Official products from the core team, plus everything the community has built — all in one place.</p>
+
+    <!-- OFFICIAL DIVIDER -->
+    <p style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.18em;opacity:0.55;margin-bottom:1rem;border-bottom:var(--border-subtle);padding-bottom:0.5rem;">OFFICIAL — FROM THE CORE TEAM</p>
+
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0; border: var(--border-strong); margin-bottom:2.5rem;">
+
+      <!-- NORMIES CANVAS (official product) -->
+      <div style="padding:1.75rem; border-right: var(--border-subtle); border-bottom: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">NORMIES CANVAS</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;background:var(--fg);color:var(--bg);padding:0.2rem 0.5rem;">LIVE</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">The flagship on-chain pixel-editing system. Burn Normies to earn Action Points, then spend them toggling individual pixels directly on Ethereum. Every edit is a permanent on-chain transaction. Built by <strong>@serc1n</strong>.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normies.art" target="_blank" rel="noopener" class="tool-link">OPEN CANVAS →</a>
+          <a href="https://normies.art/docs/canvas" target="_blank" rel="noopener" class="tool-link">DOCS →</a>
+        </div>
+      </div>
+
+      <!-- NORMIES API (official) -->
+      <div style="padding:1.75rem; border-bottom: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">NORMIES API</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;background:var(--fg);color:var(--bg);padding:0.2rem 0.5rem;">LIVE</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">The official on-chain data API from the core team, powering every tool in this list. Pixel data, metadata, canvas diffs, burn history, version history — all live from Ethereum mainnet. Built by <strong>@serc1n</strong>.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://api.normies.art" target="_blank" rel="noopener" class="tool-link">API DOCS →</a>
+        </div>
+      </div>
+
+      <!-- NORMIES ARENA (official, coming soon) -->
+      <div style="padding:1.75rem; border-right: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">NORMIES ARENA</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;border:var(--border-medium);padding:0.2rem 0.5rem;">COMING SOON</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">The next official dApp from the core team (<strong>@serc1n</strong> + <strong>@yigitduman</strong>). An on-chain PvP battle game where Normies fight for dominance — and <em>not all will survive</em>. The burn mechanic enters the arena. When it launches, Temple will archive every battle, champion, and casualty.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normies.art" target="_blank" rel="noopener" class="tool-link">FOLLOW NORMIES.ART →</a>
+        </div>
+      </div>
+
+      <!-- PIXEL MARKET (official, coming soon) -->
+      <div style="padding:1.75rem;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">PIXEL MARKET</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;border:var(--border-medium);padding:0.2rem 0.5rem;">COMING SOON</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">An official marketplace built specifically for canvas-edited Normies — where pixel art is the primary value signal. Filter by level, pixel count, canvas versions, and artist delegation. When it launches, Temple will integrate listings directly alongside canvas data and Hall of Fame profiles.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normies.art" target="_blank" rel="noopener" class="tool-link">FOLLOW NORMIES.ART →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COMMUNITY DIVIDER -->
+    <p style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.18em;opacity:0.55;margin-bottom:1rem;border-bottom:var(--border-subtle);padding-bottom:0.5rem;">COMMUNITY — BUILT BY HOLDERS</p>
+
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:0; border: var(--border-subtle);">
+
+      <!-- NORMIES 3D / GRAVEYARD -->
+      <div style="padding:1.75rem; border-right: var(--border-subtle); border-bottom: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">NORMIES 3D</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.58;border:var(--border-subtle);padding:0.2rem 0.5rem;">by @0xfilter8</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">Interactive 3D voxel explorer for any Normie. Sculpt, extrude, export PNG, view in AR. Includes The Graveyard — a 3D memorial for every burned Normie.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normie-3d.vercel.app" target="_blank" rel="noopener" class="tool-link">SCULPT →</a>
+          <a href="https://normie-3d.vercel.app/graveyard" target="_blank" rel="noopener" class="tool-link">GRAVEYARD →</a>
+        </div>
+      </div>
+
+      <!-- NORMIE CANVAS TRACKER -->
+      <div style="padding:1.75rem; border-bottom: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">CANVAS TRACKER</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.58;border:var(--border-subtle);padding:0.2rem 0.5rem;">by @MrRayG</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">Track pixel-by-pixel canvas changes for any Normie. View version history, before/after diffs, and add custom trait annotations. The original community diff tool.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normie-canvas-tracker.vercel.app" target="_blank" rel="noopener" class="tool-link">OPEN TOOL →</a>
+          <a href="https://github.com/MrRayG/normie-canvas-tracker" target="_blank" rel="noopener" class="tool-link">GITHUB →</a>
+        </div>
+      </div>
+
+      <!-- NORMIES LEGO / BRICKS -->
+      <div style="padding:1.75rem; border-right: var(--border-subtle); border-bottom: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">NORMIES × BRICKS</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.58;border:var(--border-subtle);padding:0.2rem 0.5rem;">by @klaushubben</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">Turn any Normie into a LEGO-style brick mosaic. Enter a token ID and get a buildable brick layout for your Normie. Physical pixel art made real.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normies-x-bricks.vercel.app" target="_blank" rel="noopener" class="tool-link">BUILD BRICKS →</a>
+        </div>
+      </div>
+
+      <!-- NORMIES TEMPLE (this tool) -->
+      <div style="padding:1.75rem; border-bottom: var(--border-subtle);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">NORMIES TEMPLE</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.58;border:var(--border-subtle);padding:0.2rem 0.5rem;">by @MrRayG</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">You are here. The on-chain museum for the Normies ecosystem — timeline, Hall of Fame, side-by-side canvas compare, burn feed, legendary artist profiles, and educational primer.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://github.com/MrRayG/normies-temple" target="_blank" rel="noopener" class="tool-link">GITHUB →</a>
+        </div>
+      </div>
+
+      <!-- SUBMIT YOUR TOOL -->
+      <div style="padding:1.75rem; background:rgba(var(--fg-rgb),0.02);">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem;">
+          <p class="pixel upper" style="font-size:0.85rem;">BUILT SOMETHING?</p>
+          <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.58;border:var(--border-subtle);padding:0.2rem 0.5rem;">OPEN CALL</span>
+        </div>
+        <p style="font-size:0.72rem;opacity:0.72;line-height:1.65;margin-bottom:1.25rem;">The Normies API is open to all builders. If you&apos;ve built a tool, explorer, game, or experience for the community — submit it to normies.art/tools to get it listed here and on the official site.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="https://normies.art/tools" target="_blank" rel="noopener" class="tool-link">SUBMIT TOOL →</a>
+          <a href="https://api.normies.art" target="_blank" rel="noopener" class="tool-link">API DOCS →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bridge note -->
+    <div style="border:var(--border-subtle); border-top:none; padding:1.25rem 1.5rem; text-align:center;">
+      <p style="font-size:0.65rem;opacity:0.60;line-height:1.75;">Temple is the archive and museum — history, lore, legendary canvases, and the on-chain record. For minting, Canvas editing, and official docs, visit <a href="https://normies.art" target="_blank" rel="noopener" style="text-decoration:underline;opacity:1;">normies.art</a>. Both tell the Normies story — from different angles.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <p class="footer-brand pixel">NORMIES TEMPLE</p>
+        <p class="faint" style="font-size:0.65rem;margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.12em;">Community · Museum · Archive</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://normies.art" target="_blank" rel="noopener">normies.art</a>
+        <a href="https://api.normies.art" target="_blank" rel="noopener">API</a>
+        <a href="https://opensea.io/collection/normiesart" target="_blank" rel="noopener">OpenSea</a>
+        <a href="https://x.com/normiesART" target="_blank" rel="noopener">X / Twitter</a>
+        <a href="https://github.com/MrRayG/normies-temple" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div>
+        <p class="footer-credit">Data live from <a href="https://api.normies.art" target="_blank" rel="noopener">api.normies.art</a> · Built by the community</p>
+        <p class="footer-credit" style="margin-top:0.3rem;">
+          Built by <a href="https://github.com/MrRayG" target="_blank" rel="noopener">@MrRayG</a> &middot;
+          <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener">Created with Perplexity Computer</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ================================================================== NORMIE DETAIL MODAL -->
+<div class="modal-overlay" id="normieModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title pixel" id="modalTitle">NORMIE #—</span>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================== JAVASCRIPT -->
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API = 'https://api.normies.art';
+
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+(function() {
+  const html = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  let dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (dark) html.classList.add('dark');
+  btn.addEventListener('click', () => {
+    dark = !dark;
+    html.classList.toggle('dark', dark);
+    btn.innerHTML = dark
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  });
+})();
+
+// ============================================================
+// MOBILE MENU
+// ============================================================
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.toggle('open');
+});
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+// ============================================================
+// ACTIVE NAV
+// ============================================================
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+// ============================================================
+// HERO MOSAIC
+// ============================================================
+const MOSAIC_IDS = [42, 88, 111, 256, 420, 512, 603, 777, 888, 1000, 1234, 2048, 3333, 4096, 5070, 6666, 7777, 8888, 9001];
+function buildHeroMosaic() {
+  const el = document.getElementById('heroMosaic');
+  const shuffled = [...MOSAIC_IDS].sort(() => Math.random() - 0.5).slice(0, 12);
+  el.innerHTML = shuffled.map(id => `
+    <div class="mosaic-cell">
+      <img src="${API}/normie/${id}/image.svg"
+           alt="Normie #${id}"
+           loading="lazy"
+           title="Normie #${id}"
+           onerror="this.parentElement.style.background='rgba(var(--fg-rgb),0.06)'" />
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// GLOBAL STATS
+// ============================================================
+async function loadGlobalStats() {
+  try {
+    const r = await fetch(`${API}/history/stats`);
+    const d = await r.json();
+    document.getElementById('statBurned').textContent = Number(d.totalBurnedTokens || 0).toLocaleString();
+    document.getElementById('statTransforms').textContent = Number(d.totalTransforms || 0).toLocaleString();
+    document.getElementById('statCommits').textContent = Number(d.totalBurnCommitments || 0).toLocaleString();
+    document.getElementById('statAP').textContent = Number(d.totalActionPointsDistributed || 0).toLocaleString();
+
+    // Update live timeline entry
+    document.getElementById('liveTimelineTitle').textContent = `LIVE: ${Number(d.totalTransforms||0).toLocaleString()} CANVAS EDITS & COUNTING`;
+    document.getElementById('liveTimelineBody').textContent =
+      `${Number(d.totalBurnedTokens||0).toLocaleString()} Normies burned forever. ${Number(d.totalBurnCommitments||0).toLocaleString()} burn commits recorded. ${Number(d.totalActionPointsDistributed||0).toLocaleString()} action points distributed across the community. The chain writes history in real time.`;
+
+    document.getElementById('bsTotal').textContent = Number(d.totalBurnedTokens||0).toLocaleString();
+    document.getElementById('bsCommits').textContent = Number(d.totalBurnCommitments||0).toLocaleString();
+    document.getElementById('bsAP').textContent = Number(d.totalActionPointsDistributed||0).toLocaleString();
+  } catch(e) { console.warn('Stats failed', e); }
+}
+
+// ============================================================
+// EXPLORE GRID
+// ============================================================
+let exploreFilter = 'all';
+let explorePage = 0;
+const PAGE_SIZE = 12;
+
+const ALL_IDS = Array.from({length: 10000}, (_, i) => i);
+let filteredIDs = [...ALL_IDS];
+let filterCache = {}; // cache results per filter type
+
+function setFilter(type, btn) {
+  exploreFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  explorePage = 0;
+  if (type === 'all') {
+    filteredIDs = [...ALL_IDS];
+    renderExploreGrid();
+  } else if (filterCache[type]) {
+    // Already scanned — use cached list
+    filteredIDs = filterCache[type];
+    renderExploreGrid();
+  } else {
+    // Need to scan — show loading state then build filtered list
+    buildFilteredList(type);
+  }
+}
+
+// Scan IDs in batches across the full collection to find matches
+async function buildFilteredList(type) {
+  const grid = document.getElementById('exploreGrid');
+  grid.innerHTML = `<div style="grid-column:1/-1;padding:3rem;text-align:center;">
+    <p class="pixel upper" style="font-size:0.75rem;opacity:0.5;">SCANNING CHAIN DATA…</p>
+    <p style="font-size:0.65rem;opacity:0.5;margin-top:0.5rem;">Reading canvas data across the collection — this takes ~15 seconds</p>
+  </div>`;
+
+  const matches = [];
+  const seen = new Set();
+  const BATCH = 40;
+
+  // For level/canvas filters: use the transforms history to seed known canvas-edited IDs first,
+  // then do a full sequential scan to catch everything
+  let seedIds = [];
+  if (type === 'customized' || type === 'level5' || type === 'level10' || type === 'level20' || type === 'level30' || type === 'level40' || type === 'level50') {
+    // Pull recent transforms — these are definitely canvas-edited
+    try {
+      const burns = await fetch(`${API}/history/burns?limit=100`).then(r => r.json());
+      if (Array.isArray(burns)) {
+        burns.forEach(b => { if (b.receiverTokenId) seedIds.push(Number(b.receiverTokenId)); });
+      }
+    } catch(e) {}
+  }
+  // Dedupe seeds
+  seedIds = [...new Set(seedIds)];
+
+  // Check seeds first (these are most likely to match level filters)
+  if (seedIds.length) {
+    const seedResults = await Promise.allSettled(
+      seedIds.map(id => fetch(`${API}/normie/${id}/canvas/info`).then(r => r.json()).then(d => ({id, ...d})))
+    );
+    seedResults.forEach(r => {
+      if (r.status !== 'fulfilled') return;
+      const d = r.value;
+      seen.add(d.id);
+      let pass = false;
+      if (type === 'customized') pass = !!d.customized;
+      else if (type === 'level5')  pass = (d.level || 1) >= 5;
+      else if (type === 'level10') pass = (d.level || 1) >= 10;
+      else if (type === 'level20') pass = (d.level || 1) >= 20;
+      else if (type === 'level30') pass = (d.level || 1) >= 30;
+      else if (type === 'level40') pass = (d.level || 1) >= 40;
+      else if (type === 'level50') pass = (d.level || 1) >= 50;
+      if (pass) matches.push(d);
+    });
+  }
+
+  // Full sequential scan across all 10,000 IDs in batches
+  // Stop when we have 120 matches OR scanned everything
+  for (let start = 0; start < 10000 && matches.length < 120; start += BATCH) {
+    const batch = ALL_IDS.slice(start, start + BATCH).filter(id => !seen.has(id));
+    if (!batch.length) continue;
+    const results = await Promise.allSettled(
+      batch.map(id => fetch(`${API}/normie/${id}/canvas/info`).then(r => r.json()).then(d => ({id, ...d})))
+    );
+    results.forEach(r => {
+      if (r.status !== 'fulfilled') return;
+      const d = r.value;
+      seen.add(d.id);
+      let pass = false;
+      if (type === 'customized') pass = !!d.customized;
+      else if (type === 'level5')  pass = (d.level || 1) >= 5;
+      else if (type === 'level10') pass = (d.level || 1) >= 10;
+      else if (type === 'level20') pass = (d.level || 1) >= 20;
+      else if (type === 'level30') pass = (d.level || 1) >= 30;
+      else if (type === 'level40') pass = (d.level || 1) >= 40;
+      else if (type === 'level50') pass = (d.level || 1) >= 50;
+      if (pass) matches.push(d);
+    });
+    // Update progress message
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:3rem;text-align:center;">
+      <p class="pixel upper" style="font-size:0.75rem;opacity:0.5;">SCANNING CHAIN DATA…</p>
+      <p style="font-size:0.65rem;opacity:0.5;margin-top:0.5rem;">Found ${matches.length} matches so far (scanned ${Math.min(start+BATCH,10000).toLocaleString()} / 10,000)</p>
+    </div>`;
+  }
+
+  // Sort by level desc for level filters, by id for others
+  if (type === 'level5' || type === 'level10' || type === 'level20' || type === 'level30' || type === 'level40' || type === 'level50') {
+    matches.sort((a, b) => (b.level || 1) - (a.level || 1));
+  }
+
+  filterCache[type] = matches;
+  filteredIDs = matches;
+  explorePage = 0;
+  renderExploreGrid();
+}
+
+function changePage(dir) {
+  const maxPage = Math.ceil(filteredIDs.length / PAGE_SIZE) - 1;
+  explorePage = Math.max(0, Math.min(maxPage, explorePage + dir));
+  renderExploreGrid();
+}
+
+async function renderExploreGrid() {
+  const grid = document.getElementById('exploreGrid');
+  const start = explorePage * PAGE_SIZE;
+  const page = filteredIDs.slice(start, start + PAGE_SIZE);
+  document.getElementById('pageIndicator').textContent = `PAGE ${explorePage + 1}`;
+
+  if (exploreFilter === 'all') {
+    // page = array of numbers
+    grid.innerHTML = page.map(id => `
+      <div class="normie-card">
+        <div class="normie-card-img skeleton" style="aspect-ratio:1;"></div>
+        <div class="normie-card-body">
+          <div class="skeleton loading-line" style="width:60%;height:10px;"></div>
+          <div class="skeleton loading-line" style="width:40%;height:8px;margin-top:6px;"></div>
+        </div>
+      </div>
+    `).join('');
+    renderExploreCards(page);
+  } else {
+    // page = array of canvas info objects (already fetched during scan)
+    renderExploreCardsWithData(page);
+  }
+}
+
+function renderExploreCards(ids) {
+  const grid = document.getElementById('exploreGrid');
+  grid.innerHTML = ids.map((id, i) => `
+    <div class="normie-card" onclick="openInlineCompare(${id})">
+      <div class="normie-card-img">
+        <img data-src="${API}/normie/${id}/image.svg" alt="Normie #${id}"
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'/%3E"
+             class="lazy-normie" onerror="this.src=''" />
+      </div>
+      <div class="normie-card-body">
+        <p class="normie-card-id pixel">NORMIE #${id}</p>
+        <p class="normie-card-meta upper">Click to compare ↓</p>
+      </div>
+    </div>
+  `).join('');
+  // Fix nth-child border removal for grid-4
+  const cards = grid.querySelectorAll('.normie-card');
+  cards.forEach((c, i) => {
+    if ((i+1) % 4 === 0) c.style.borderRight = 'none';
+  });
+  // Lazy load via IntersectionObserver
+  attachLazyObserver(grid);
+}
+
+function attachLazyObserver(container) {
+  const imgs = container.querySelectorAll('img.lazy-normie[data-src]');
+  if (!imgs.length) return;
+  const obs = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+      img.classList.remove('lazy-normie');
+      observer.unobserve(img);
+    });
+  }, { rootMargin: '100px' });
+  imgs.forEach(img => obs.observe(img));
+}
+
+// ============================================================
+// INLINE COMPARE (expands below Explore grid on card click)
+// ============================================================
+async function openInlineCompareQuiet(id) {
+  // Load the default compare without scrolling to it
+  const panel = document.getElementById('exploreInlineCompare');
+  panel.style.display = 'block';
+  document.getElementById('inlineCompareTitle').textContent = `NORMIE #${id} — SIDE-BY-SIDE`;
+  document.getElementById('inlineOrigImg').src = `${API}/normie/${id}/original/image.svg`;
+  document.getElementById('inlineCurrImg').src = `${API}/normie/${id}/image.svg`;
+  document.getElementById('inlineDiffVisual').style.display = 'none';
+  ['inlineDiffAdded','inlineDiffRemoved','inlineDiffNet','inlineDiffVersions'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = '…';
+  });
+  try {
+    const [meta, diff, versions] = await Promise.all([
+      fetch(`${API}/normie/${id}/metadata`).then(r => r.json()),
+      fetch(`${API}/normie/${id}/canvas/diff`).then(r => r.json()),
+      fetch(`${API}/history/normie/${id}/versions`).then(r => r.json()),
+    ]);
+    const attrs = {};
+    (meta.attributes || []).forEach(a => { attrs[a.trait_type] = a.value; });
+    const keys = ['Type','Gender','Age','Hair Style','Eyes','Expression','Accessory','Level'];
+    const traitHTML = keys.map(k => `<div class="compare-trait"><span class="compare-trait-key">${k}</span><span class="compare-trait-val">${attrs[k] || '—'}</span></div>`).join('');
+    document.getElementById('inlineOrigTraits').innerHTML = traitHTML;
+    document.getElementById('inlineCurrTraits').innerHTML = traitHTML;
+    document.getElementById('inlineDiffAdded').textContent = diff.addedCount || 0;
+    document.getElementById('inlineDiffRemoved').textContent = diff.removedCount || 0;
+    const net = (diff.netChange || 0);
+    document.getElementById('inlineDiffNet').textContent = (net > 0 ? '+' : '') + net;
+    document.getElementById('inlineDiffVersions').textContent = versions ? versions.length : 0;
+    if (diff && (diff.added || diff.removed)) await renderPixelDiffInline(id, diff);
+  } catch(e) { console.warn('Default compare error:', e); }
+}
+
+async function openInlineCompare(id) {
+  const panel = document.getElementById('exploreInlineCompare');
+  panel.style.display = 'block';
+  document.getElementById('inlineCompareTitle').textContent = `NORMIE #${id} — SIDE-BY-SIDE`;
+  document.getElementById('inlineOrigImg').src = `${API}/normie/${id}/original/image.svg`;
+  document.getElementById('inlineCurrImg').src = `${API}/normie/${id}/image.svg`;
+  document.getElementById('inlineDiffVisual').style.display = 'none';
+  // Reset stats
+  ['inlineDiffAdded','inlineDiffRemoved','inlineDiffNet','inlineDiffVersions'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = '…';
+  });
+  // Highlight selected card
+  document.querySelectorAll('#exploreGrid .normie-card').forEach(c => c.style.outline = '');
+  // Smooth scroll to panel
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const [meta, diff, versions] = await Promise.all([
+      fetch(`${API}/normie/${id}/metadata`).then(r => r.json()),
+      fetch(`${API}/normie/${id}/canvas/diff`).then(r => r.json()),
+      fetch(`${API}/history/normie/${id}/versions`).then(r => r.json()),
+    ]);
+    const attrs = {};
+    (meta.attributes || []).forEach(a => { attrs[a.trait_type] = a.value; });
+    const keys = ['Type','Gender','Age','Hair Style','Eyes','Expression','Accessory','Level'];
+    const traitHTML = keys.map(k => `<div class="compare-trait"><span class="compare-trait-key">${k}</span><span class="compare-trait-val">${attrs[k] || '—'}</span></div>`).join('');
+    document.getElementById('inlineOrigTraits').innerHTML = traitHTML;
+    document.getElementById('inlineCurrTraits').innerHTML = traitHTML;
+    document.getElementById('inlineDiffAdded').textContent = diff.addedCount || 0;
+    document.getElementById('inlineDiffRemoved').textContent = diff.removedCount || 0;
+    const net = (diff.netChange || 0);
+    document.getElementById('inlineDiffNet').textContent = (net > 0 ? '+' : '') + net;
+    document.getElementById('inlineDiffVersions').textContent = versions ? versions.length : 0;
+    if (diff && (diff.added || diff.removed)) {
+      await renderPixelDiffInline(id, diff);
+    }
+  } catch(e) { console.warn('Inline compare error:', e); }
+}
+
+function closeInlineCompare() {
+  document.getElementById('exploreInlineCompare').style.display = 'none';
+}
+
+async function renderPixelDiffInline(id, diff) {
+  const GRID = 40, CELL = 6, SIZE = GRID * CELL;
+  const added = diff.added || [];
+  const removed = diff.removed || [];
+  function toXY(p) {
+    if (typeof p === 'number') return { x: p % GRID, y: Math.floor(p / GRID) };
+    if (p && typeof p === 'object') {
+      if ('x' in p && 'y' in p) return { x: p.x, y: p.y };
+      if ('index' in p) return { x: p.index % GRID, y: Math.floor(p.index / GRID) };
+    }
+    return null;
+  }
+  async function svgToBitmap(url) {
+    try {
+      const res = await fetch(url);
+      const text = await res.text();
+      const blob = new Blob([text], { type: 'image/svg+xml' });
+      const burl = URL.createObjectURL(blob);
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(burl); resolve(img); };
+        img.onerror = reject;
+        img.src = burl;
+      });
+    } catch(e) { return null; }
+  }
+  const [origImg, currImg] = await Promise.all([
+    svgToBitmap(`${API}/normie/${id}/original/image.svg`),
+    svgToBitmap(`${API}/normie/${id}/image.svg`),
+  ]);
+  function drawDiff(canvasId, baseImg, pixels, color, countId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    canvas.width = SIZE; canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    if (baseImg) ctx.drawImage(baseImg, 0, 0, SIZE, SIZE);
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = color;
+    let count = 0;
+    pixels.forEach(p => { const xy = toXY(p); if (!xy) return; ctx.fillRect(xy.x*CELL, xy.y*CELL, CELL, CELL); count++; });
+    ctx.globalAlpha = 1.0;
+    if (countId) document.getElementById(countId).textContent = count;
+  }
+  drawDiff('inlineDiffAdded', origImg, added, '#22c55e', 'inlineDiffAddedCount');
+  drawDiff('inlineDiffRemoved', origImg, removed, '#ef4444', 'inlineDiffRemovedCount');
+  const combined = document.getElementById('inlineDiffCombined');
+  if (combined) {
+    combined.width = SIZE; combined.height = SIZE;
+    const ctx = combined.getContext('2d');
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    if (currImg) ctx.drawImage(currImg, 0, 0, SIZE, SIZE);
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = '#22c55e'; added.forEach(p => { const xy = toXY(p); if (xy) ctx.fillRect(xy.x*CELL, xy.y*CELL, CELL, CELL); });
+    ctx.fillStyle = '#ef4444'; removed.forEach(p => { const xy = toXY(p); if (xy) ctx.fillRect(xy.x*CELL, xy.y*CELL, CELL, CELL); });
+    ctx.globalAlpha = 1.0;
+  }
+  document.getElementById('inlineDiffVisual').style.display = '';
+}
+
+function renderExploreCardsWithData(items) {
+  const grid = document.getElementById('exploreGrid');
+  if (!items.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;" class="empty-state">
+      <p class="empty-icon pixel">[0]</p>
+      <p class="empty-title pixel">NO RESULTS</p>
+      <p class="empty-msg">Try a different filter or page range.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = items.map((d, i) => `
+    <div class="normie-card" onclick="openInlineCompare(${d.id})">
+      <div class="normie-card-img">
+        <img data-src="${API}/normie/${d.id}/image.svg" alt="Normie #${d.id}"
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'/%3E"
+             class="lazy-normie" />
+      </div>
+      <div class="normie-card-body">
+        <p class="normie-card-id pixel">NORMIE #${d.id}</p>
+        <div class="normie-card-badges">
+          ${d.customized ? '<span class="badge customized">CANVAS</span>' : ''}
+          ${(d.level||1) >= 20 ? '<span class="badge legendary">LVL '+(d.level)+'</span>' :
+            (d.level||1) >= 10 ? '<span class="badge">LVL '+(d.level)+'</span>' :
+            (d.level||1) >= 5 ? '<span class="badge">LVL '+(d.level)+'</span>' : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+  const cards = grid.querySelectorAll('.normie-card');
+  cards.forEach((c, i) => {
+    if ((i+1) % 4 === 0) c.style.borderRight = 'none';
+  });
+  attachLazyObserver(grid);
+}
+
+// Search by ID
+document.getElementById('exploreSearchBtn').addEventListener('click', () => {
+  const v = parseInt(document.getElementById('exploreInput').value);
+  if (!isNaN(v) && v >= 0 && v <= 9999) {
+    openNormieModal(v);
+  }
+});
+document.getElementById('exploreInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('exploreSearchBtn').click();
+});
+
+// ============================================================
+// NORMIE MODAL
+// ============================================================
+async function openNormieModal(id) {
+  const modal = document.getElementById('normieModal');
+  const title = document.getElementById('modalTitle');
+  const body = document.getElementById('modalBody');
+
+  title.textContent = `NORMIE #${id}`;
+  modal.classList.add('open');
+  body.innerHTML = `<div style="text-align:center;padding:3rem;"><div class="skeleton" style="width:200px;height:200px;margin:0 auto 1rem;"></div><p class="faint" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;">Loading from chain…</p></div>`;
+
+  try {
+    const [meta, canvasInfo, diff, versions] = await Promise.all([
+      fetch(`${API}/normie/${id}/metadata`).then(r => r.json()),
+      fetch(`${API}/normie/${id}/canvas/info`).then(r => r.json()),
+      fetch(`${API}/normie/${id}/canvas/diff`).then(r => r.json()),
+      fetch(`${API}/history/normie/${id}/versions`).then(r => r.json()),
+    ]);
+
+    const attrs = {};
+    (meta.attributes || []).forEach(a => { attrs[a.trait_type] = a.value; });
+    const traitKeys = ['Type','Gender','Age','Hair Style','Facial Feature','Eyes','Expression','Accessory'];
+    const isCustomized = canvasInfo.customized;
+
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:0;border:var(--border-subtle);margin-bottom:1.5rem;">
+        <div style="border-right:var(--border-subtle);">
+          <img src="${API}/normie/${id}/image.svg" alt="Normie #${id}"
+               style="width:100%;image-rendering:pixelated;" />
+        </div>
+        <div style="padding:1.25rem;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:var(--border-faint);">
+            ${traitKeys.map(k => `
+              <div style="padding:0.4rem 0.6rem;border-bottom:var(--border-faint);border-right:var(--border-faint);">
+                <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.4;display:block;">${k}</span>
+                <span style="font-size:0.72rem;display:block;margin-top:0.1rem;">${attrs[k] || '—'}</span>
+              </div>
+            `).join('')}
+            <div style="padding:0.4rem 0.6rem;border-bottom:var(--border-faint);">
+              <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.4;display:block;">Level</span>
+              <span style="font-family:var(--font-pixel);font-size:0.85rem;display:block;">${attrs['Level'] || 1}</span>
+            </div>
+            <div style="padding:0.4rem 0.6rem;border-bottom:var(--border-faint);border-right:none;">
+              <span style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.4;display:block;">Action Points</span>
+              <span style="font-family:var(--font-pixel);font-size:0.85rem;display:block;">${Number(attrs['Action Points']||0).toLocaleString()}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.85rem;">
+            ${isCustomized ? '<span class="badge customized">CANVAS EDITED</span>' : '<span class="badge">UNMINTED</span>'}
+            ${versions && versions.length ? `<span class="badge">${versions.length} VERSIONS</span>` : ''}
+            ${diff && diff.addedCount > 0 ? `<span class="badge">+${diff.addedCount} PIXELS</span>` : ''}
+          </div>
+          <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn-outline" style="font-size:0.6rem;padding:0.4rem 1rem;" onclick="loadCompareFull(${id});document.getElementById('normieModal').classList.remove('open');document.getElementById('compare').scrollIntoView({behavior:'smooth'});">
+              FULL COMPARE →
+            </button>
+            <a href="${API}/normie/${id}/image.png" target="_blank" rel="noopener" class="btn-outline" style="font-size:0.6rem;padding:0.4rem 1rem;">
+              DOWNLOAD PNG →
+            </a>
+          </div>
+        </div>
+      </div>
+      ${versions && versions.length > 0 ? `
+        <p style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;opacity:0.4;margin-bottom:0.75rem;">CANVAS VERSIONS (${versions.length})</p>
+        <div style="display:flex;gap:0;border:var(--border-subtle);overflow-x:auto;">
+          ${[...versions].sort((a,b)=>a.version-b.version).map(v => {
+            const d = v.timestamp ? new Date(v.timestamp*1000) : null;
+            return `<div style="flex-shrink:0;width:90px;border-right:var(--border-faint);">
+              <img src="${API}/history/normie/${id}/version/${v.version}/image.svg"
+                   style="width:90px;height:90px;image-rendering:pixelated;"
+                   loading="lazy" alt="v${v.version}" />
+              <div style="padding:0.3rem 0.4rem;border-top:var(--border-faint);">
+                <span style="font-family:var(--font-pixel);font-size:0.6rem;display:block;">V${v.version}</span>
+                <span style="font-size:0.55rem;opacity:0.4;">${d ? d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</span>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      ` : ''}
+    `;
+  } catch(e) {
+    body.innerHTML = `<div class="empty-state"><p class="empty-title pixel">FAILED TO LOAD</p><p class="empty-msg">${e.message}</p></div>`;
+  }
+}
+
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('normieModal').classList.remove('open');
+});
+document.getElementById('normieModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('normieModal')) {
+    document.getElementById('normieModal').classList.remove('open');
+  }
+});
+
+// ============================================================
+// COMPARE SECTION
+// ============================================================
+document.getElementById('compareBtn').addEventListener('click', () => {
+  const v = parseInt(document.getElementById('compareInput').value);
+  if (!isNaN(v) && v >= 0 && v <= 9999) loadCompareFull(v);
+});
+document.getElementById('compareInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('compareBtn').click();
+});
+document.getElementById('compareClose').addEventListener('click', () => {
+  document.getElementById('comparePanel').classList.remove('open');
+  document.getElementById('compareEmpty').style.display = '';
+  document.getElementById('diffVisual').style.display = 'none';
+});
+
+async function loadCompareFull(id) {
+  document.getElementById('compareEmpty').style.display = 'none';
+  const panel = document.getElementById('comparePanel');
+  panel.classList.add('open');
+  document.getElementById('comparePanelTitle').textContent = `NORMIE #${id}`;
+  document.getElementById('compareOrigImg').src = `${API}/normie/${id}/original/image.svg`;
+  document.getElementById('compareCurrImg').src = `${API}/normie/${id}/image.svg`;
+
+  try {
+    const [meta, diff, versions] = await Promise.all([
+      fetch(`${API}/normie/${id}/metadata`).then(r => r.json()),
+      fetch(`${API}/normie/${id}/canvas/diff`).then(r => r.json()),
+      fetch(`${API}/history/normie/${id}/versions`).then(r => r.json()),
+    ]);
+
+    const attrs = {};
+    (meta.attributes || []).forEach(a => { attrs[a.trait_type] = a.value; });
+    const keys = ['Type','Gender','Age','Hair Style','Eyes','Expression','Accessory','Level'];
+    const traitHTML = keys.map(k => `
+      <div class="compare-trait">
+        <span class="compare-trait-key">${k}</span>
+        <span class="compare-trait-val">${attrs[k] || '—'}</span>
+      </div>
+    `).join('');
+    document.getElementById('compareOrigTraits').innerHTML = traitHTML;
+    document.getElementById('compareCurrTraits').innerHTML = traitHTML + `
+      <div class="compare-trait" style="grid-column:span 2;">
+        <span class="compare-trait-key">NOTE</span>
+        <span class="compare-trait-val" style="font-size:0.65rem;opacity:0.55;">On-chain traits don't auto-update on marketplaces — canvas image does.</span>
+      </div>
+    `;
+
+    document.getElementById('diffAdded').textContent = diff.addedCount || 0;
+    document.getElementById('diffRemoved').textContent = diff.removedCount || 0;
+    const net = (diff.netChange || 0);
+    document.getElementById('diffNet').textContent = (net > 0 ? '+' : '') + net;
+    document.getElementById('diffVersions').textContent = versions ? versions.length : 0;
+
+    // ---- PIXEL DIFF VISUALIZER ----
+    if (diff && (diff.added || diff.removed)) {
+      await renderPixelDiff(id, diff);
+    }
+  } catch(e) { console.warn('Compare error:', e); }
+}
+
+// Draw pixel diff visualizations onto canvas elements
+async function renderPixelDiff(id, diff) {
+  const GRID = 40;          // Normies are 40x40
+  const CELL = 6;           // each pixel cell = 6px → 240×240 canvas
+  const SIZE = GRID * CELL;
+
+  const added   = diff.added   || [];   // array of {x,y} or index
+  const removed = diff.removed || [];   // array of {x,y} or index
+
+  // Helper — normalize pixel entry to {x, y}
+  function toXY(p) {
+    if (typeof p === 'number') return { x: p % GRID, y: Math.floor(p / GRID) };
+    if (p && typeof p === 'object') {
+      if ('x' in p && 'y' in p) return { x: p.x, y: p.y };
+      if ('index' in p) return { x: p.index % GRID, y: Math.floor(p.index / GRID) };
+    }
+    return null;
+  }
+
+  // Fetch original SVG as ImageBitmap for base rendering
+  async function svgToBitmap(url) {
+    try {
+      const res = await fetch(url);
+      const text = await res.text();
+      const blob = new Blob([text], { type: 'image/svg+xml' });
+      const burl = URL.createObjectURL(blob);
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(burl); resolve(img); };
+        img.onerror = reject;
+        img.src = burl;
+      });
+    } catch(e) { return null; }
+  }
+
+  const [origImg, currImg] = await Promise.all([
+    svgToBitmap(`${API}/normie/${id}/original/image.svg`),
+    svgToBitmap(`${API}/normie/${id}/image.svg`),
+  ]);
+
+  // Draw a canvas: base image + highlighted pixel set
+  function drawDiff(canvasId, baseImg, pixels, color, countId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    canvas.width  = SIZE;
+    canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, SIZE, SIZE);
+
+    // Draw base image stretched to canvas
+    if (baseImg) {
+      ctx.drawImage(baseImg, 0, 0, SIZE, SIZE);
+    } else {
+      ctx.fillStyle = 'rgba(var(--fg-rgb, 72,73,75), 0.05)';
+      ctx.fillRect(0, 0, SIZE, SIZE);
+    }
+
+    // Overlay highlight pixels
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = color;
+    let count = 0;
+    pixels.forEach(p => {
+      const xy = toXY(p);
+      if (!xy) return;
+      ctx.fillRect(xy.x * CELL, xy.y * CELL, CELL, CELL);
+      count++;
+    });
+    ctx.globalAlpha = 1.0;
+
+    if (countId) document.getElementById(countId).textContent = count;
+  }
+
+  // Added pixels panel — show on original
+  drawDiff('diffCanvasAdded',  origImg, added,   '#22c55e', 'diffAddedCount');
+  // Removed pixels panel — show on original (what was there that got removed)
+  drawDiff('diffCanvasRemoved', origImg, removed, '#ef4444', 'diffRemovedCount');
+  // Combined — show on current image with both colors
+  const combined = document.getElementById('diffCanvasCombined');
+  if (combined) {
+    combined.width  = SIZE;
+    combined.height = SIZE;
+    const ctx = combined.getContext('2d');
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    if (currImg) ctx.drawImage(currImg, 0, 0, SIZE, SIZE);
+    ctx.globalAlpha = 0.72;
+    ctx.fillStyle = '#22c55e';
+    added.forEach(p => { const xy = toXY(p); if (xy) ctx.fillRect(xy.x*CELL, xy.y*CELL, CELL, CELL); });
+    ctx.fillStyle = '#ef4444';
+    removed.forEach(p => { const xy = toXY(p); if (xy) ctx.fillRect(xy.x*CELL, xy.y*CELL, CELL, CELL); });
+    ctx.globalAlpha = 1.0;
+  }
+
+  document.getElementById('diffVisual').style.display = '';
+}
+
+// ============================================================
+// HALL OF FAME
+// ============================================================
+// We'll load the top Normies by checking a representative sample
+// for burns, level, and pixel edits — using the history endpoints.
+const HOF_KNOWN = [
+  // Known high-burn/high-level Normies (seeded from research + community lore)
+  // Legendary canvases
+  603, 45, 5070, 9852, 7740, 666,
+  // High-level community canvases — seeded from known active artists
+  4354, 1, 42, 99, 100, 250, 333, 500, 777, 888,
+  1000, 1234, 2048, 3333, 4096, 6666, 7777, 8888, 9001, 4444,
+  // Additional community nominees
+  2222, 5555, 1111, 3000, 6969, 420, 69, 404, 1337, 9999
+];
+
+async function loadHallOfFame() {
+  // Load burn data for known HoF candidates
+  const results = await Promise.allSettled(HOF_KNOWN.map(async id => {
+    const [canvasInfo, burns] = await Promise.all([
+      fetch(`${API}/normie/${id}/canvas/info`).then(r => r.json()),
+      fetch(`${API}/history/burns/receiver/${id}`).then(r => r.json()),
+    ]);
+    return { id, level: canvasInfo.level || 1, ap: canvasInfo.actionPoints || 0,
+             burns: Array.isArray(burns) ? burns.reduce((s,b) => s + Number(b.tokenCount||0), 0) : 0,
+             burnCount: Array.isArray(burns) ? burns.length : 0 };
+  }));
+
+  // Deduplicate by ID (in case of any repeated fetches) and filter to meaningful data
+  const seen = new Set();
+  const data = results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value)
+    .filter(d => { if (seen.has(d.id)) return false; seen.add(d.id); return true; })
+    .filter(d => d.level > 1 || d.burns > 0 || d.ap > 0); // remove empty entries
+
+  const byBurns = [...data].sort((a,b) => b.burns - a.burns);
+  const byLevel = [...data].sort((a,b) => b.level - a.level);
+  const byAP = [...data].sort((a,b) => b.ap - a.ap);
+
+  renderHofGrid('hofBurnsGrid', byBurns.slice(0,6), 'burns');
+  renderHofGrid('hofLevelGrid', byLevel.slice(0,6), 'level');
+  renderHofGrid('hofPixelsGrid', byAP.slice(0,6), 'ap');
+}
+
+function renderHofGrid(containerId, items, sortKey) {
+  const el = document.getElementById(containerId);
+  if (!items.length) { el.innerHTML = '<div style="grid-column:1/-1" class="empty-state"><p class="empty-icon pixel">[?]</p><p class="empty-title pixel">LOADING…</p></div>'; return; }
+
+  el.innerHTML = items.map((d, i) => {
+    const rank = ['LEGENDARY', '2ND', '3RD', '4TH', '5TH', '6TH'][i] || `${i+1}TH`;
+    const isLeg = i === 0;
+    let stat1Label, stat1Val, stat2Label, stat2Val;
+    if (sortKey === 'burns') {
+      stat1Label = 'Normies Burned In'; stat1Val = d.burns;
+      stat2Label = 'Level'; stat2Val = d.level;
+    } else if (sortKey === 'level') {
+      stat1Label = 'Level'; stat1Val = d.level;
+      stat2Label = 'Normies Burned In'; stat2Val = d.burns;
+    } else {
+      stat1Label = 'Action Points'; stat1Val = Number(d.ap).toLocaleString();
+      stat2Label = 'Level'; stat2Val = d.level;
+    }
+    return `
+      <div class="normie-card" style="position:relative;" onclick="openNormieModal(${d.id})">
+        ${isLeg ? '<span class="hof-badge gold">★ LEGENDARY</span>' : `<span class="hof-badge">#${i+1}</span>`}
+        <div class="normie-card-img">
+          <img src="${API}/normie/${d.id}/image.svg" alt="Normie #${d.id}" loading="lazy" />
+        </div>
+        <div class="normie-card-body">
+          <p class="normie-card-id pixel">NORMIE #${d.id}</p>
+          <div class="hof-card-stats">
+            <div class="hof-card-stat"><span>${stat1Val}</span>${stat1Label}</div>
+            <div class="hof-card-stat"><span>${stat2Val}</span>${stat2Label}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  // fix borders
+  const cards = el.querySelectorAll('.normie-card');
+  cards.forEach((c, i) => {
+    if ((i+1) % 3 === 0) c.style.borderRight = 'none';
+  });
+}
+
+function switchTab(section, tabId, btn) {
+  // Deactivate all sibling tab buttons
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Map section+tabId to the actual panel element IDs
+  const panelMap = {
+    'halloffame': { 'burns': 'hofBurns', 'level': 'hofLevel', 'pixels': 'hofPixels' }
+  };
+  const sectionPanels = panelMap[section];
+  if (!sectionPanels) return;
+
+  // Hide all panels in this section, show the target one
+  Object.values(sectionPanels).forEach(pid => {
+    const el = document.getElementById(pid);
+    if (el) el.classList.remove('active');
+  });
+  const target = sectionPanels[tabId];
+  if (target) {
+    const el = document.getElementById(target);
+    if (el) el.classList.add('active');
+  }
+}
+
+// ============================================================
+// ARTISTS
+// ============================================================
+const KNOWN_ARTISTS = [
+  {
+    id: 'serc1n',
+    name: 'SERC',
+    handle: '@serc1n',
+    role: 'FOUNDER & CREATOR',
+    bio: 'Creator of Normies — the fully on-chain pixel art collection with the burn-and-canvas mechanic. Built the 40×40 bitmap system, the burn architecture, and the Canvas engine from scratch. Burned 38 Normies to fund his own canvas on Normie #45, then delegated the paint to legendary Art Blocks founder Snowfro — creating one of the collection\'s most celebrated pieces. "This is not my achievement, this is OUR achievement."',
+    normieId: 4354,
+    burns: '38+',
+    canvases: '1',
+    level: '60',
+    xUrl: 'https://x.com/serc1n',
+  },
+  {
+    id: 'snowfro',
+    name: 'SNOWFRO',
+    handle: '@ArtOnBlockchain',
+    role: 'LEGENDARY ARTIST',
+    bio: 'Erick Calderon — founder of Art Blocks, creator of Chromie Squiggle, one of the most influential figures in generative and on-chain art. When serc1n delegated Normie #45\'s canvas to Snowfro, he made 515 pixel changes — transforming a blank bitmap into a landmark piece of on-chain art. His involvement signaled to the broader art world that Normies was something special.',
+    normieId: 45,
+    burns: '0',
+    canvases: '1',
+    level: '60',
+    xUrl: 'https://x.com/ArtOnBlockchain',
+    delegateNote: 'PAINTED NORMIE #45 — DELEGATED BY SERC',
+  },
+  {
+    id: 'ack',
+    name: 'ALPHA CENTAURI KID',
+    handle: '@lphaCentauriKid',
+    role: 'LEGENDARY ARTIST',
+    bio: 'The artist behind Skelemoon — Normie #603. Adam Weitsman burned 50 Normies to earn Action Points, then called in a personal favor to ACK. The result: a moon-phase skeleton painted pixel by pixel, entirely on-chain. 421 pixel changes across 2 canvas versions. The first iconic collaborative canvas in Normies history.',
+    normieId: 603,
+    burns: '0',
+    canvases: '1',
+    level: '51',
+    xUrl: 'https://x.com/lphaCentauriKid',
+    delegateNote: 'PAINTED NORMIE #603 — PATRON: ADAM WEITSMAN',
+  },
+  {
+    id: 'weitsman',
+    name: 'ADAM WEITSMAN',
+    handle: '@AdamWeitsman',
+    role: 'COLLECTOR · PATRON',
+    bio: 'The collector who put Normies on the map. Weitsman purchased and burned 50 Normies — then called on legendary digital artist ACK to transform Normie #603 into Skelemoon. "What do you do when you want to support one of the best new collections ever in Web3? You call in a favor to one of your favorite digital artists of all time." The Skelemoon collaboration proved that collectors and artists together can forge something historic on-chain.',
+    normieId: 603,
+    burns: '50',
+    canvases: '1',
+    level: '51',
+    xUrl: 'https://x.com/AdamWeitsman',
+  },
+  {
+    id: 'billybadass',
+    name: 'BILLYBADASS',
+    handle: '@billybadass',
+    role: 'TOP CREATOR',
+    bio: 'One of the most committed canvas artists in the collection. Burned 14 Normies across 13 separate burn commits to build up Action Points on Normie #5070 — then executed hundreds of pixel transforms across 4 canvas versions, reaching Level 31. A testament to sustained, iterative on-chain artistry.',
+    normieId: 5070,
+    burns: '14',
+    canvases: '4',
+    level: '31',
+    xUrl: 'https://x.com/billybadass',
+  },
+  {
+    id: 'acidman',
+    name: 'ACIDMAN',
+    handle: '@acidman',
+    role: 'TOP CREATOR',
+    bio: 'The most prolific canvas reviser in the collection with 19 versions on Normie #9852 — more iterative canvas history than any other Normie. Burned 10 Normies and reached Level 41, continuously refining their piece with hundreds of pixel changes per version. A true on-chain process artist.',
+    normieId: 9852,
+    burns: '10',
+    canvases: '19',
+    level: '41',
+    xUrl: 'https://x.com/acidman',
+  },
+  {
+    id: 'edmckenway',
+    name: 'EDMCKENWAY',
+    handle: '@edmckenway',
+    role: 'TOP CREATOR',
+    bio: 'Burned 15 Normies to build up Normie #7740 into one of the highest-level canvases in the collection. Reached Level 45 across 4 canvas versions, each with 430–440 pixel changes. A powerful, methodical approach to on-chain canvas building.',
+    normieId: 7740,
+    burns: '15',
+    canvases: '4',
+    level: '45',
+    xUrl: 'https://x.com/edmckenway',
+  },
+  {
+    id: 'nuclearsamurai',
+    name: 'NUCLEAR SAMURAI',
+    handle: '@nuclearsamurai',
+    role: 'COMMUNITY BUILDER',
+    bio: 'Creator of xNORMIES — 101 3D voxel-style tokens gifted free to Normies holders. Built the first major community derivative collection on the Normies IP, proving the power of CC0 and community creativity. Holder and contributor who helped expand the Normies universe beyond the original 40×40 bitmap.',
+    normieId: 666,
+    burns: '—',
+    canvases: '—',
+    level: '10',
+    xUrl: 'https://x.com/nuclearsamurai',
+  },
+];
+
+function renderArtists() {
+  const grid = document.getElementById('artistsGrid');
+  grid.innerHTML = KNOWN_ARTISTS.map((a, i) => `
+    <div class="artist-card" style="border:none;border-right:var(--border-subtle);border-bottom:var(--border-subtle);${i%2===1?'border-right:none;':''}${i>=KNOWN_ARTISTS.length-2?'border-bottom:none;':''}">
+      <img class="artist-avatar"
+           src="${a.imageUrl || `${API}/normie/${a.normieId}/image.svg`}"
+           alt="Normie #${a.normieId}"
+           onerror="this.style.display='none'" />
+      <p class="artist-name pixel">${a.name}</p>
+      <p class="artist-handle upper">${a.handle}</p>
+      ${a.delegateNote ? `<p style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.7;margin-bottom:0.6rem;border:var(--border-subtle);display:inline-block;padding:0.15rem 0.6rem;">${a.delegateNote}</p>` : ''}
+      <p class="artist-bio">${a.bio}</p>
+      <div class="artist-stats">
+        <div class="artist-stat"><span>${a.burns}</span><small>burns</small></div>
+        <div class="artist-stat"><span>${a.canvases}</span><small>canvases</small></div>
+        <div class="artist-stat"><span>${a.level}</span><small>max level</small></div>
+      </div>
+      <a href="${a.xUrl}" target="_blank" rel="noopener" class="artist-link">
+        VIEW ON X →
+      </a>
+    </div>
+  `).join('');
+}
+
+
+// ============================================================
+// BURN FEED
+// ============================================================
+async function loadBurnFeed() {
+  try {
+    const burns = await fetch(`${API}/history/burns?limit=10&offset=0`).then(r => r.json());
+    const el = document.getElementById('burnFeedList');
+
+    if (!burns || !burns.length) {
+      el.innerHTML = '<div class="empty-state"><p class="empty-title pixel">NO DATA</p></div>';
+      return;
+    }
+
+    el.innerHTML = burns.slice(0, 8).map((b, i) => {
+      const ts = b.timestamp ? new Date(b.timestamp * 1000) : null;
+      const date = ts ? ts.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'2-digit'}) : '—';
+      const owner = b.owner ? `${b.owner.slice(0,6)}…${b.owner.slice(-4)}` : '—';
+      return `
+        <div class="burn-row">
+          <span class="burn-rank">${i+1}</span>
+          <div class="burn-info">
+            <p class="burn-id pixel">COMMIT #${b.commitId}</p>
+            <p class="burn-detail">${date} · ${owner} · ${b.tokenCount || '?'} tokens</p>
+          </div>
+          <div class="burn-pts">
+            ${b.totalActions || '—'}
+            <small>actions</small>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) { console.warn('Burns failed', e); }
+}
+
+async function loadBurnedGallery() {
+  try {
+    const burned = await fetch(`${API}/history/burned-tokens?limit=16&offset=0`).then(r => r.json());
+    const el = document.getElementById('burnedGallery');
+    if (!burned || !burned.length) return;
+
+    el.innerHTML = burned.slice(0, 16).map(b => `
+      <div style="border-right:var(--border-faint);border-bottom:var(--border-faint);position:relative;overflow:hidden;" title="Normie #${b.tokenId} — BURNED">
+        <img src="${API}/history/burned/${b.tokenId}/image.svg"
+             alt="Burned Normie #${b.tokenId}"
+             loading="lazy"
+             style="width:100%;image-rendering:pixelated;opacity:0.6;filter:grayscale(100%);" />
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(var(--fg-rgb),0.7);padding:2px 4px;">
+          <span style="font-family:var(--font-pixel);font-size:0.55rem;color:var(--bg);">#${b.tokenId}</span>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.warn('Burned gallery failed', e); }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildHeroMosaic();
+loadGlobalStats();
+renderExploreGrid();
+// Default compare — show Normie 603 (Skelemoon) so users see the feature without entering an ID
+setTimeout(() => openInlineCompareQuiet(603), 1200);
+loadHallOfFame();
+renderArtists();
+loadBurnFeed();
+loadBurnedGallery();
+
+// ============================================================
+// XNORMIES INTRO ANIMATION
+// Phase 1 (auto): Normie #306 runs to temple, waits at door
+// Phase 2 (click): user clicks door → burst through → enter
+// ============================================================
+(function initIntro() {
+  const overlay   = document.getElementById('introOverlay');
+  const canvas    = document.getElementById('introCanvas');
+  if (!overlay || !canvas) return;
+  const ctx       = canvas.getContext('2d');
+  const doorHit   = document.getElementById('introDoorHit');
+  const clickHint = document.getElementById('introClickHint');
+
+  const FG = '#e3e5e4';
+  const BG = '#1a1b1c';
+
+  // ── Normie #306 sprite ────────────────────────────────────
+  const SPRITE_SIZE = 110;
+  const spriteImg = new Image();
+  spriteImg.crossOrigin = 'anonymous';
+  spriteImg.src = 'https://api.normies.art/normie/306/image.svg';
+  let spriteReady = false;
+  spriteImg.onload = () => { spriteReady = true; };
+
+  function drawSprite(x, y, scale, alpha) {
+    const size = SPRITE_SIZE * scale;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, alpha);
+    if (spriteReady) {
+      const bob = Math.sin(Date.now() / 200) * size * 0.03;
+      ctx.drawImage(spriteImg, x, y + bob, size, size);
+    } else {
+      // Simple blocky fallback
+      ctx.fillStyle = FG;
+      const b = size / 5;
+      ctx.fillRect(x + b, y,       b*3, b*2); // head
+      ctx.fillRect(x + b, y+b*2,   b*3, b*2); // body
+      ctx.fillRect(x,     y+b*2,   b,   b*3); // left arm
+      ctx.fillRect(x+b*4, y+b*2,   b,   b*3); // right arm
+      ctx.fillRect(x + b, y+b*4,   b,   b*2); // left leg
+      ctx.fillRect(x+b*3, y+b*4,   b,   b*2); // right leg
+    }
+    ctx.restore();
+  }
+
+  // ── Temple ────────────────────────────────────────────────
+  let doorGeom = null;
+
+  function drawTemple(phase, doorOpenAmt, glowPulse) {
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, baseY = H * 0.62;
+    const tW = 260, tH = 170;
+    const tx = cx - tW / 2;
+    const ty = baseY - tH;
+    const vis = Math.min(1, phase * 2.5);
+
+    ctx.save();
+
+    // Glow
+    if (glowPulse > 0) {
+      const g = ctx.createRadialGradient(cx, baseY - tH/2, 10, cx, baseY - tH/2, tW * 0.7);
+      g.addColorStop(0, `rgba(227,229,228,${0.07 * glowPulse})`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Steps
+    for (let s = 2; s >= 0; s--) {
+      ctx.globalAlpha = vis * (0.2 + (2-s) * 0.15);
+      ctx.fillStyle = FG;
+      ctx.fillRect(tx - s*14, baseY + s*9, tW + s*28, 11);
+    }
+
+    // 4 columns
+    const nC = 4, cW = 15, cGap = (tW - cW*nC) / (nC+1);
+    for (let i = 0; i < nC; i++) {
+      const cx2 = tx + cGap + i*(cW+cGap);
+      ctx.globalAlpha = vis;
+      ctx.fillStyle = FG;
+      ctx.fillRect(cx2, ty+16, cW, tH-16);
+      ctx.globalAlpha = vis * 0.35;
+      ctx.fillStyle = BG;
+      for (let f = 1; f < 4; f++) ctx.fillRect(cx2 + f*(cW/4), ty+16, 1, tH-16);
+    }
+
+    // Entablature
+    ctx.globalAlpha = vis;
+    ctx.fillStyle = FG;
+    ctx.fillRect(tx-10, ty+4, tW+20, 13);
+
+    // Pediment
+    ctx.globalAlpha = vis;
+    ctx.fillStyle = BG;
+    ctx.strokeStyle = FG;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(tx-14, ty+4);
+    ctx.lineTo(cx, ty-52);
+    ctx.lineTo(tx+tW+14, ty+4);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // NORMIES text
+    ctx.globalAlpha = vis;
+    ctx.fillStyle = FG;
+    ctx.font = `bold 10px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText('NORMIES', cx, ty - 18);
+
+    // Door
+    const dW = 60, dH = 95;
+    const dx = cx - dW/2, dy = baseY - dH;
+
+    if (doorOpenAmt > 0) {
+      const half = dW/2, open = doorOpenAmt * half * 1.3;
+      ctx.globalAlpha = 1;
+      // Light through open door
+      const dg = ctx.createLinearGradient(cx-5, dy, cx+5, dy);
+      dg.addColorStop(0, 'rgba(227,229,228,0)');
+      dg.addColorStop(0.5, `rgba(227,229,228,${doorOpenAmt * 0.5})`);
+      dg.addColorStop(1, 'rgba(227,229,228,0)');
+      ctx.fillStyle = dg;
+      ctx.fillRect(dx-open, dy, dW+open*2, dH);
+      // Door panels
+      ctx.fillStyle = '#0a0b0c';
+      ctx.fillRect(dx-open, dy, half, dH);
+      ctx.fillRect(dx+half+open, dy, half, dH);
+      ctx.strokeStyle = FG; ctx.lineWidth = 1.5;
+      ctx.strokeRect(dx-open, dy, half, dH);
+      ctx.strokeRect(dx+half+open, dy, half, dH);
+    } else {
+      ctx.globalAlpha = vis;
+      ctx.fillStyle = '#0a0b0c';
+      ctx.fillRect(dx, dy, dW, dH);
+      ctx.strokeStyle = FG; ctx.lineWidth = 1.5;
+      ctx.strokeRect(dx, dy, dW, dH);
+      // Panel detail
+      ctx.globalAlpha = vis * 0.35;
+      ctx.strokeRect(dx+4, dy+5, dW/2-6, dH-10);
+      ctx.strokeRect(dx+dW/2+2, dy+5, dW/2-6, dH-10);
+      // Handles
+      ctx.globalAlpha = vis * 0.8;
+      ctx.fillStyle = FG;
+      ctx.beginPath(); ctx.arc(dx+dW/2-4, dy+dH*0.55, 2.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(dx+dW/2+4, dy+dH*0.55, 2.5, 0, Math.PI*2); ctx.fill();
+      // Door glow
+      if (glowPulse > 0) {
+        const dg2 = ctx.createRadialGradient(cx, dy+dH*0.5, 4, cx, dy+dH*0.5, dW*0.9);
+        dg2.addColorStop(0, `rgba(227,229,228,${0.2 * glowPulse})`);
+        dg2.addColorStop(1, 'transparent');
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = dg2;
+        ctx.fillRect(dx-20, dy-10, dW+40, dH+20);
+      }
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    doorGeom = { dx, dy, dW, dH, cx, groundY: baseY };
+    return doorGeom;
+  }
+
+  function drawTitle(alpha) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, alpha);
+    ctx.fillStyle = FG;
+    ctx.font = `bold 40px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('NORMIES TEMPLE', canvas.width/2, canvas.height * 0.84);
+    ctx.globalAlpha = Math.max(0, alpha * 0.5);
+    ctx.font = `10px 'Courier New', monospace`;
+    ctx.fillText('THE ON-CHAIN MUSEUM', canvas.width/2, canvas.height * 0.89);
+    ctx.restore();
+  }
+
+  function drawScanlines() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    for (let y = 0; y < canvas.height; y += 4) ctx.fillRect(0, y, canvas.width, 2);
+    ctx.restore();
+  }
+
+  // ── Particles ─────────────────────────────────────────────
+  const particles = [];
+  function spawnBurst(cx, cy) {
+    for (let i = 0; i < 50; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const spd = 1.5 + Math.random() * 7;
+      particles.push({ x: cx, y: cy, vx: Math.cos(a)*spd, vy: Math.sin(a)*spd-3,
+        life: 1, decay: 0.018 + Math.random()*0.02, size: 2+Math.random()*5 });
+    }
+  }
+  function drawParticles() {
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= p.decay;
+      if (p.life <= 0) return;
+      ctx.save(); ctx.globalAlpha = p.life * 0.7; ctx.fillStyle = FG;
+      ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore();
+    });
+  }
+
+  // ── Door hit box ──────────────────────────────────────────
+  function positionDoorHit() {
+    if (!doorGeom) return;
+    const { dx, dy, dW, dH } = doorGeom;
+    const sx = canvas.offsetWidth  / canvas.width;
+    const sy = canvas.offsetHeight / canvas.height;
+    doorHit.style.left   = (dx * sx) + 'px';
+    doorHit.style.top    = (dy * sy) + 'px';
+    doorHit.style.width  = (dW * sx) + 'px';
+    doorHit.style.height = (dH * sy) + 'px';
+    const hW = 280;
+    clickHint.style.left  = (canvas.offsetWidth/2 - hW/2) + 'px';
+    clickHint.style.top   = (canvas.offsetHeight * 0.16) + 'px';
+    clickHint.style.width = hW + 'px';
+  }
+
+  // ── Resize ────────────────────────────────────────────────
+  function resize() {
+    canvas.width  = window.innerWidth  || 1280;
+    canvas.height = window.innerHeight || 800;
+    positionDoorHit();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── State ─────────────────────────────────────────────────
+  let phase = 'run'; // 'run' | 'wait' | 'burst'
+  let startTime  = null;
+  let burstStart = null;
+  let glowT      = 0;
+  let charArrivedX = 0;
+  let charArrivedY = 0;
+  let particlesSpawned = false;
+  let running = true;
+  let raf;
+  const RUN_DUR   = 2800;
+  const BURST_DUR = 1600;
+  const SPW = 110, SPH = 110;
+
+  function enterTemple() {
+    if (phase !== 'wait') return;
+    phase = 'burst';
+    burstStart = null;
+    doorHit.style.display  = 'none';
+    clickHint.style.display = 'none';
+  }
+  window.enterTemple = enterTemple;
+
+  function skipIntro() {
+    running = false;
+    cancelAnimationFrame(raf);
+    doorHit.style.display  = 'none';
+    clickHint.style.display = 'none';
+    overlay.classList.add('fade-out');
+    setTimeout(() => { overlay.style.display = 'none'; }, 650);
+  }
+  window.skipIntro = skipIntro;
+
+  // ── Main loop ─────────────────────────────────────────────
+  function animate(ts) {
+    if (!running) return;
+    // Safety: ensure canvas is full-screen
+    if (canvas.width < window.innerWidth * 0.5) resize();
+    if (!startTime) startTime = ts;
+
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+    drawScanlines();
+
+    // Ground line
+    const groundLineY = H * 0.65;
+    ctx.save(); ctx.strokeStyle = FG; ctx.globalAlpha = 0.08; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, groundLineY); ctx.lineTo(W, groundLineY); ctx.stroke(); ctx.restore();
+
+    if (phase === 'run') {
+      const elapsed = ts - startTime;
+      const t = Math.min(elapsed / RUN_DUR, 1);
+      const templePhase = Math.min(1, t / 0.4);
+      const door = drawTemple(templePhase, 0, 0);
+
+      drawTitle(Math.max(0, Math.min(1, (t - 0.1) / 0.25)));
+
+      if (t > 0.12) {
+        const runT   = Math.min(1, (t - 0.12) / 0.88);
+        const ease   = 1 - Math.pow(1 - runT, 2.5);
+        const startX = -SPW - 20;
+        const endX   = door.dx - SPW * 0.6;
+        const charX  = startX + (endX - startX) * ease;
+        const charY  = door.groundY - SPH - 2;
+        const frame  = Math.floor(ts / 90) % 2;
+
+        // Shadow
+        ctx.save(); ctx.globalAlpha = 0.12; ctx.fillStyle = FG;
+        ctx.beginPath(); ctx.ellipse(charX+SPW*0.5, door.groundY+2, SPW*0.4, 4, 0, 0, Math.PI*2); ctx.fill(); ctx.restore();
+
+        drawSprite(charX, charY, frame, 1, 1);
+        charArrivedX = endX;
+        charArrivedY = charY;
+      }
+
+      if (t >= 1) {
+        phase = 'wait';
+        glowT = ts;
+        doorHit.style.display  = 'block';
+        clickHint.style.display = 'block';
+        positionDoorHit();
+      }
+
+    } else if (phase === 'wait') {
+      const pulse = 0.5 + 0.5 * Math.sin((ts - glowT) / 600);
+      const door  = drawTemple(1, 0, pulse);
+      positionDoorHit();
+      drawTitle(1);
+
+      const bob = Math.sin(ts / 420) * 3;
+      ctx.save(); ctx.globalAlpha = 0.12; ctx.fillStyle = FG;
+      ctx.beginPath(); ctx.ellipse(charArrivedX+SPW*0.5, door.groundY+2, SPW*0.4, 4, 0, 0, Math.PI*2); ctx.fill(); ctx.restore();
+      drawSprite(charArrivedX, charArrivedY + bob, Math.floor(ts/800)%2, 1, 1);
+
+    } else if (phase === 'burst') {
+      if (!burstStart) burstStart = ts;
+      const bt = Math.min((ts - burstStart) / BURST_DUR, 1);
+
+      const door = drawTemple(1, Math.min(1, bt / 0.25), 0);
+      drawTitle(Math.max(0, 1 - bt * 2));
+
+      if (bt > 0.18 && !particlesSpawned) {
+        spawnBurst(door.cx, door.dy + door.dH * 0.4);
+        particlesSpawned = true;
+      }
+      drawParticles();
+
+      if (bt >= 0.18 && bt <= 0.85) {
+        const cT    = Math.min(1, (bt - 0.18) / 0.47);
+        const ease  = Math.pow(cT, 0.45);
+        const charX = charArrivedX + (door.cx - SPW*0.5 - charArrivedX) * ease;
+        const charY = charArrivedY - cT * 22;
+        const scale = 1 + cT * 2;
+        const alpha = 1 - Math.max(0, (cT - 0.6) / 0.4);
+        ctx.save(); ctx.globalAlpha = Math.max(0,alpha)*0.1; ctx.fillStyle = FG;
+        ctx.beginPath(); ctx.ellipse(charX+SPW*scale*0.5, door.groundY+2, SPW*scale*0.35, 5, 0, 0, Math.PI*2); ctx.fill(); ctx.restore();
+        drawSprite(charX, charY, Math.floor(ts/60)%2, scale, alpha);
+      }
+
+      // Flash
+      if (bt > 0.38 && bt < 0.65) {
+        const fa = Math.sin((bt-0.38)/0.27 * Math.PI) * 0.6;
+        ctx.fillStyle = '#ffffff'; ctx.globalAlpha = Math.max(0,fa); ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+      }
+
+      // Fade to site
+      if (bt > 0.82) {
+        const fa = Math.min(1, (bt - 0.82) / 0.18);
+        ctx.fillStyle = BG; ctx.globalAlpha = fa; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+      }
+
+      if (bt >= 1) { skipIntro(); return; }
+    }
+
+    raf = requestAnimationFrame(animate);
+  }
+
+  raf = requestAnimationFrame(animate);
+})();
+
+</script>
+</body>
+</html>
