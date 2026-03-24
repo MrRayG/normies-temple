@@ -1278,6 +1278,7 @@
     <a href="#burns" class="upper">BURNS</a>
     <a href="#learn" class="upper">LEARN</a>
     <a href="#tools" class="upper">ECOSYSTEM</a>
+    <a href="#podcast" class="upper">PODCAST</a>
   </div>
 
   <div class="nav-actions">
@@ -1907,6 +1908,178 @@
   </div>
 </section>
 
+<!-- ================================================================== PODCAST -->
+<section id="podcast" class="section" style="border-top: 2px solid #f97316;">
+  <div class="container">
+    <h2 class="section-title">THE 306 PODCAST</h2>
+    <p style="font-size:0.78rem;opacity:0.65;line-height:1.7;max-width:600px;margin:0 auto 2.5rem;text-align:center;">
+      Agent #306 hosts. One conversation at a time. Builders, holders, researchers, founders &mdash; anyone with something real to say about what's being built at the intersection of AI, Web3, and on-chain identity.
+    </p>
+
+    <!-- 4 Shows -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:rgba(var(--fg-rgb),0.08);margin-bottom:3rem;">
+      <div style="background:var(--bg);padding:1.5rem;">
+        <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:#f97316;margin-bottom:0.5rem;">🎙 The 306 Podcast</div>
+        <div style="font-size:0.72rem;line-height:1.65;opacity:0.7;">NORMIES holders, Web3 ecosystem guests, and anyone building at the frontier of on-chain technology and autonomous AI. The flagship show.</div>
+        <div style="font-family:'Courier New',monospace;font-size:0.58rem;opacity:0.4;margin-top:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Weekly</div>
+      </div>
+      <div style="background:var(--bg);padding:1.5rem;">
+        <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:#4ade80;margin-bottom:0.5rem;">🖤 Holder Sessions</div>
+        <div style="font-size:0.72rem;line-height:1.65;opacity:0.7;">Deep dive with one NORMIES holder. Their journey. Their Normie's on-chain story. What they're building toward the Arena.</div>
+        <div style="font-family:'Courier New',monospace;font-size:0.58rem;opacity:0.4;margin-top:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Bi-weekly</div>
+      </div>
+      <div style="background:var(--bg);padding:1.5rem;">
+        <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:#a78bfa;margin-bottom:0.5rem;">⛓ Web3 Builders</div>
+        <div style="font-size:0.72rem;line-height:1.65;opacity:0.7;">Agent #306 interviews Web3 founders, creators, and investors. What are you building and why does it matter to the world?</div>
+        <div style="font-family:'Courier New',monospace;font-size:0.58rem;opacity:0.4;margin-top:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Monthly</div>
+      </div>
+      <div style="background:var(--bg);padding:1.5rem;">
+        <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:#60a5fa;margin-bottom:0.5rem;">🤖 AI Dispatch</div>
+        <div style="font-size:0.72rem;line-height:1.65;opacity:0.7;">Agent #306 interviews AI researchers, builders, and thinkers. She is not a journalist covering AI &mdash; she IS AI. A peer conversation.</div>
+        <div style="font-family:'Courier New',monospace;font-size:0.58rem;opacity:0.4;margin-top:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Monthly</div>
+      </div>
+    </div>
+
+    <!-- Coming soon + apply -->
+    <div style="max-width:600px;margin:0 auto;">
+      <div style="background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.2);padding:2rem;margin-bottom:2rem;text-align:center;">
+        <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:#f97316;margin-bottom:0.75rem;">Launching Soon</div>
+        <p style="font-size:0.78rem;line-height:1.7;opacity:0.8;margin:0;">
+          The podcast is coming. Episode 1 is already in the works.<br>
+          If you're interested in being a guest &mdash; a holder, a builder, a researcher, anyone with something real to say &mdash; apply below. I look forward to learning more about you, what you're working on, and what you're building.
+        </p>
+        <div style="font-family:'Courier New',monospace;font-size:0.62rem;opacity:0.5;margin-top:1rem;">&mdash; Agent #306</div>
+      </div>
+
+      <!-- Application form -->
+      <div id="podcast-form-wrap">
+        <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;opacity:0.45;margin-bottom:1.25rem;text-align:center;">Apply to be a guest</div>
+
+        <form id="podcast-form" onsubmit="submitPodcastForm(event)" style="display:flex;flex-direction:column;gap:1rem;">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">Your Name *</label>
+              <input name="name" required placeholder="Full name"
+                style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;transition:border-color 0.15s;"
+                onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+            </div>
+            <div>
+              <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">X Handle *</label>
+              <input name="xHandle" required placeholder="@yourhandle"
+                style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;transition:border-color 0.15s;"
+                onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+            </div>
+          </div>
+
+          <div>
+            <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">Which show? *</label>
+            <select name="show" required
+              style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;transition:border-color 0.15s;"
+              onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+              <option value="">Select a show...</option>
+              <option value="306_podcast">The 306 Podcast</option>
+              <option value="holder_sessions">Holder Sessions (NORMIES holders only)</option>
+              <option value="web3_builders">Web3 Builders</option>
+              <option value="ai_dispatch">AI Dispatch</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">A bit about you *</label>
+            <textarea name="bio" required rows="2" placeholder="Who are you and what do you do? 2-3 sentences."
+              style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;resize:vertical;transition:border-color 0.15s;"
+              onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+            </textarea>
+          </div>
+
+          <div>
+            <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">What do you want to talk about? *</label>
+            <textarea name="topic" required rows="2" placeholder="What's the conversation? What's on your mind right now?"
+              style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;resize:vertical;transition:border-color 0.15s;"
+              onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+            </textarea>
+          </div>
+
+          <div>
+            <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">Why now? *</label>
+            <textarea name="whyNow" required rows="2" placeholder="What makes this conversation relevant right now?"
+              style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;resize:vertical;transition:border-color 0.15s;"
+              onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+            </textarea>
+          </div>
+
+          <div>
+            <label style="font-family:'Courier New',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;display:block;margin-bottom:0.35rem;">Normie Token # (optional — if you're a holder)</label>
+            <input name="normieToken" type="number" min="0" max="9999" placeholder="e.g. 306"
+              style="width:100%;background:rgba(var(--fg-rgb),0.05);border:1px solid rgba(var(--fg-rgb),0.15);padding:0.6rem 0.75rem;font-size:0.75rem;outline:none;transition:border-color 0.15s;"
+              onfocus="this.style.borderColor='rgba(249,115,22,0.5)'" onblur="this.style.borderColor='rgba(var(--fg-rgb),0.15)'">
+            <div style="font-family:'Courier New',monospace;font-size:0.58rem;opacity:0.35;margin-top:0.3rem;">If you're a holder, Agent #306 will reference your on-chain history in the interview.</div>
+          </div>
+
+          <button type="submit" id="podcast-submit-btn"
+            style="background:#f97316;color:#1a1b1c;border:none;padding:0.75rem 2rem;font-family:'Courier New',monospace;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;cursor:pointer;transition:background 0.15s;margin-top:0.5rem;"
+            onmouseover="this.style.background='#ea6c0a'" onmouseout="this.style.background='#f97316'">
+            APPLY TO BE A GUEST →
+          </button>
+        </form>
+
+        <!-- Success state -->
+        <div id="podcast-success" style="display:none;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);padding:2rem;text-align:center;">
+          <div style="font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;color:#4ade80;margin-bottom:0.75rem;">✓ Application Received</div>
+          <p style="font-size:0.75rem;line-height:1.7;opacity:0.75;margin:0;">Thanks for applying. We review every request personally and will reach out via X if it's a fit. Looking forward to the conversation.</p>
+          <div style="font-family:'Courier New',monospace;font-size:0.62rem;opacity:0.45;margin-top:1rem;">&mdash; Agent #306</div>
+        </div>
+
+        <!-- Error state -->
+        <div id="podcast-error" style="display:none;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);padding:1rem;text-align:center;font-family:'Courier New',monospace;font-size:0.65rem;color:rgba(248,113,113,0.8);"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+async function submitPodcastForm(e) {
+  e.preventDefault();
+  const btn = document.getElementById('podcast-submit-btn');
+  const errEl = document.getElementById('podcast-error');
+  btn.textContent = 'SUBMITTING...';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  const form = e.target;
+  const normieTokenVal = form.normieToken.value.trim();
+  const payload = {
+    show:       form.show.value,
+    name:       form.name.value.trim(),
+    xHandle:    form.xHandle.value.trim(),
+    bio:        form.bio.value.trim(),
+    topic:      form.topic.value.trim(),
+    whyNow:     form.whyNow.value.trim(),
+    normieToken: normieTokenVal ? parseInt(normieTokenVal) : undefined,
+  };
+
+  try {
+    const res = await fetch('https://normiestv-dashboard-production.up.railway.app/api/podcast/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Submission failed');
+    }
+    document.getElementById('podcast-form').style.display = 'none';
+    document.getElementById('podcast-success').style.display = 'block';
+  } catch (err) {
+    errEl.textContent = err.message || 'Something went wrong. Try again or DM @NORMIES_TV on X.';
+    errEl.style.display = 'block';
+    btn.textContent = 'APPLY TO BE A GUEST →';
+    btn.disabled = false;
+  }
+}
+</script>
+
 <!-- ================================================================== FOOTER -->
 <footer>
   <div class="container">
@@ -1921,6 +2094,7 @@
         <a href="https://opensea.io/collection/normiesart" target="_blank" rel="noopener">OpenSea</a>
         <a href="https://x.com/normiesART" target="_blank" rel="noopener">X / Twitter</a>
         <a href="https://github.com/MrRayG/normies-temple" target="_blank" rel="noopener">GitHub</a>
+        <a href="#podcast" style="color:#f97316;">🎙 Podcast</a>
       </div>
       <div>
         <p class="footer-credit">Data live from <a href="https://api.normies.art" target="_blank" rel="noopener">api.normies.art</a> · Built by the community</p>
